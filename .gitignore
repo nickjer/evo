@@ -12,3 +12,10 @@ Cargo.lock
 
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
+
+# Performance data generated
+perf.data*
+flamegraph.svg
+
+# Ignore generated files
+data.js

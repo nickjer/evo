@@ -1,0 +1,25 @@
+[package]
+name = "evo"
+version = "0.1.0"
+authors = ["Jeremy Nicklas <jeremywnicklas@gmail.com>"]
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0"
+approx = "0.5"
+config = "0.14"
+derive_more = "0.99"
+fixedbitset = "0.5"
+getset = "0.1"
+itertools = "0.13"
+nohash = "0.2"
+rand = { version = "0.8", features = ["small_rng"] }
+rand_distr = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0" }
+toml = "0.8"
+
+[profile.release]
+codegen-units = 1
+debug = 1
+lto = true

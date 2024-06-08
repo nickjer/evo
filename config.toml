@@ -1,0 +1,118 @@
+rng_seed = 1
+x_size = 200
+y_size = 200
+snapshot_interval = 200
+max_steps = 10_000
+
+[random_plants]
+total = 30
+
+[[static_plants]]
+position = { x = 0, y = 0 }
+
+[static_plants.singlet]
+e = 3.1908634
+o = 2.8504384
+
+[static_plants.doublet]
+ee = 2.1545224
+es = 0.67481375
+eo = -0.521781
+oe = 1.1583551
+os = -2.823775
+oo = -1.0808475
+
+[static_plants.triplet_l]
+eee = -1.3494178
+ees = -3.1430244
+eeo = -4.3429713
+ese = -1.1255575
+ess = 2.2486472
+eso = -0.97013044
+eoe = 1.41011
+eos = -0.78873664
+eoo = 2.3953109
+oee = 0.7065167
+oes = -2.4138122
+oeo = -3.3676124
+ose = 0.3652231
+oss = -1.9737506
+oso = -1.8672574
+ooe = -0.9372068
+oos = -0.22705832
+ooo = 1.7452242
+
+[static_plants.triplet_i]
+eee = 1.9684292
+ees = -3.0949395
+eeo = 2.097471
+ese = 0.7369272
+ess = 2.0147367
+eso = 0.61777395
+eoe = -0.9210353
+eos = -1.2818812
+eoo = -0.2800254
+oee = -0.83943206
+oes = -3.427342
+oeo = -1.7446971
+ose = -1.9453157
+oss = -5.6345816
+oso = -1.3487645
+ooe = 1.1256454
+oos = -0.23933618
+ooo = 0.6220175
+
+[[static_plants]]
+position = { x = 50, y = 50 }
+
+[static_plants.singlet]
+e = 3.1130364
+o = 2.5751216
+
+[static_plants.doublet]
+ee = 2.086367
+es = 0.7526919
+eo = -0.7538912
+oe = 1.1148264
+os = -2.6555016
+oo = -0.9480898
+
+[static_plants.triplet_l]
+eee = -1.34264
+ees = -3.2378953
+eeo = -4.283214
+ese = -1.1688038
+ess = 2.550911
+eso = -0.8894125
+eoe = 1.3393277
+eos = -0.8235433
+eoo = 2.4152148
+oee = 0.41090846
+oes = -2.0830233
+oeo = -3.0506344
+ose = 0.4041142
+oss = -2.1314604
+oso = -1.9329647
+ooe = -0.92790073
+oos = -0.04222221
+ooo = 1.6435947
+
+[static_plants.triplet_i]
+eee = 2.1749475
+ees = -3.1611223
+eeo = 2.1039639
+ese = 1.0202475
+ess = 1.976671
+eso = 0.69989777
+eoe = -0.8409959
+eos = -1.2821792
+eoo = -0.45520145
+oee = -0.9957171
+oes = -3.499022
+oeo = -1.8264513
+ose = -2.1089606
+oss = -5.855334
+oso = -1.4096541
+ooe = 1.1572263
+oos = -0.32538942
+ooo = 0.7205819

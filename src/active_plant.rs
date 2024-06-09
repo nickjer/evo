@@ -75,6 +75,10 @@ impl ActivePlant {
         }
 
         let mut k = energy_yield / energy_usage;
+        if k == 0 {
+            return Vec::new();
+        }
+
         self.surface_map
             .keys()
             .filter_map(|&tile_id| match grid.owner(tile_id) {

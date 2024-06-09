@@ -1,6 +1,6 @@
 use crate::position::Position;
 use crate::step::Step;
-use crate::tile_list::TileId;
+use crate::tiles::TileId;
 
 #[derive(Debug, Clone)]
 pub struct TileIdBuilder {

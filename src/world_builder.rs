@@ -6,12 +6,12 @@ use crate::neighbors::Neighbors;
 use crate::owner::Owner;
 use crate::position::Position;
 use crate::tile_id_builder::TileIdBuilder;
-use crate::tiles::Tiles;
 use crate::triplet_i::TripletI;
 use crate::triplet_l::TripletL;
+use crate::world::World;
 
 #[derive(Debug, Clone)]
-pub struct GridBuilder {
+pub struct WorldBuilder {
     x_size: usize,
     y_size: usize,
     seed_rate: f32,
@@ -19,9 +19,9 @@ pub struct GridBuilder {
     plants: Vec<(Genome, Position)>,
 }
 
-impl GridBuilder {
+impl WorldBuilder {
     pub fn new(x_size: usize, y_size: usize) -> Self {
-        GridBuilder {
+        WorldBuilder {
             x_size,
             y_size,
             seed_rate: 0.1,
@@ -45,8 +45,8 @@ impl GridBuilder {
         self
     }
 
-    pub fn build(self) -> Grid {
-        let mut tiles = Tiles::default();
+    pub fn build(self) -> World {
+        let mut grid = Grid::default();
         for x in 0..self.x_size {
             for y in 0..self.y_size {
                 let position = Position::new(x, y);
@@ -58,16 +58,16 @@ impl GridBuilder {
                 let blob = Blob::build(tile_id_builder.clone());
                 let owner = Owner::Empty;
 
-                tiles.push(owner, neighbors, doublets, triplets_l, triplets_i, blob);
+                grid.push(owner, neighbors, doublets, triplets_l, triplets_i, blob);
             }
         }
-        let mut grid = Grid::new(self.y_size, tiles, self.seed_rate, self.mutation_rate);
+        let mut world = World::new(self.y_size, grid, self.seed_rate, self.mutation_rate);
         self.plants.into_iter().for_each(|(genome, cell_position)| {
             let tile_id_builder = TileIdBuilder::new(cell_position, self.x_size, self.y_size);
             let tile_id = tile_id_builder.build();
-            let genome_id = grid.add_genome(genome);
-            grid.add_plant(genome_id, tile_id);
+            let genome_id = world.add_genome(genome);
+            world.add_plant(genome_id, tile_id);
         });
-        grid
+        world
     }
 }

@@ -1,4 +1,6 @@
-use crate::genome::Genome;
+use crate::active_genome::ActiveGenome;
+use crate::either::Either;
+use crate::inactive_genome::InactiveGenome;
 use derive_more::{Display, From, Into};
 
 #[derive(
@@ -7,17 +9,20 @@ use derive_more::{Display, From, Into};
 pub struct GenomeId(usize);
 
 #[derive(Debug, Clone, Default)]
-pub struct Genomes(Vec<Genome>);
+pub struct Genomes(Vec<Either<ActiveGenome, InactiveGenome>>);
 
 impl Genomes {
-    pub fn add(&mut self, genome: Genome) -> GenomeId {
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn push(&mut self, genome: Either<ActiveGenome, InactiveGenome>) {
         self.0.push(genome);
-        GenomeId::from(self.0.len() - 1)
     }
 }
 
 impl std::ops::Index<GenomeId> for Genomes {
-    type Output = Genome;
+    type Output = Either<ActiveGenome, InactiveGenome>;
 
     #[inline]
     fn index(&self, genome_id: GenomeId) -> &Self::Output {

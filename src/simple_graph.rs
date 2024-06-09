@@ -1,6 +1,6 @@
 use crate::neighbors::Neighbors;
 use crate::neighbors::NEIGHBOR_COUNT;
-use crate::tile_list::TileId;
+use crate::tiles::TileId;
 use derive_more::IntoIterator;
 use nohash::{IntMap, IntSet};
 use std::collections::VecDeque;

@@ -1,5 +1,5 @@
 use crate::tile_id_builder::TileIdBuilder;
-use crate::tile_list::TileId;
+use crate::tiles::TileId;
 
 #[derive(Debug, Copy, Clone)]
 pub struct TripletL(TileId, TileId);

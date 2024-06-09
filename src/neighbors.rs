@@ -1,5 +1,5 @@
 use crate::tile_id_builder::TileIdBuilder;
-use crate::tile_list::TileId;
+use crate::tiles::TileId;
 use derive_more::IntoIterator;
 use nohash::IntSet;
 

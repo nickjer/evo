@@ -89,13 +89,15 @@ impl ActivePlant {
             .keys()
             .for_each(|&tile_id| match grid.owner(tile_id) {
                 Owner::Empty => {
-                    let tile = ScoredTile::new(tile_id, genome.score(self.id, grid, tile_id), 1);
-                    heap_cost_1.push(tile);
+                    heap_cost_1.push_with(|| {
+                        ScoredTile::new(tile_id, genome.score(self.id, grid, tile_id), 1)
+                    });
                 }
                 Owner::Cell(plant_id) if plant_id == self.id => (),
                 Owner::Cell(_) => {
-                    let tile = ScoredTile::new(tile_id, genome.score(self.id, grid, tile_id), 2);
-                    heap_cost_2.push(tile);
+                    heap_cost_2.push_with(|| {
+                        ScoredTile::new(tile_id, genome.score(self.id, grid, tile_id), 2)
+                    });
                 }
             });
 
@@ -164,7 +166,12 @@ impl CostHeap {
         }
     }
 
-    fn push(&mut self, scored_tile: ScoredTile) {
+    fn push_with(&mut self, mut f: impl FnMut() -> ScoredTile) {
+        if self.size == 0 {
+            return;
+        }
+
+        let scored_tile = f();
         if self.heap.len() < self.size {
             self.heap.push(Reverse(scored_tile));
         } else if let Some(Reverse(min)) = self.heap.peek() {

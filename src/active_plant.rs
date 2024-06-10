@@ -82,8 +82,8 @@ impl ActivePlant {
             return Vec::new();
         }
 
-        let mut heap_cost_1 = CostHeap::new(k);
-        let mut heap_cost_2 = CostHeap::new(k / 2);
+        let mut heap_cost_1 = MaxHeap::with_size(k);
+        let mut heap_cost_2 = MaxHeap::with_size(k / 2);
 
         self.surface_map
             .keys()
@@ -153,14 +153,14 @@ impl ActivePlant {
 }
 
 #[derive(Debug, Clone)]
-struct CostHeap {
+struct MaxHeap {
     size: usize,
     heap: BinaryHeap<Reverse<ScoredTile>>,
 }
 
-impl CostHeap {
-    fn new(size: usize) -> Self {
-        CostHeap {
+impl MaxHeap {
+    fn with_size(size: usize) -> Self {
+        MaxHeap {
             size,
             heap: BinaryHeap::with_capacity(size),
         }

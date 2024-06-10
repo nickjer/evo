@@ -1,3 +1,6 @@
+use std::cmp::Reverse;
+use std::collections::BinaryHeap;
+
 use crate::active_genome::ActiveGenome;
 use crate::genomes::GenomeId;
 use crate::grid::Grid;
@@ -79,22 +82,28 @@ impl ActivePlant {
             return Vec::new();
         }
 
+        let mut heap_cost_1 = CostHeap::new(k);
+        let mut heap_cost_2 = CostHeap::new(k / 2);
+
         self.surface_map
             .keys()
-            .filter_map(|&tile_id| match grid.owner(tile_id) {
-                Owner::Empty => Some(ScoredTile::new(
-                    tile_id,
-                    genome.score(self.id, grid, tile_id),
-                    1,
-                )),
-                Owner::Cell(plant_id) if plant_id == self.id => None,
-                Owner::Cell(_) => Some(ScoredTile::new(
-                    tile_id,
-                    genome.score(self.id, grid, tile_id),
-                    2,
-                )),
-            })
+            .for_each(|&tile_id| match grid.owner(tile_id) {
+                Owner::Empty => {
+                    let tile = ScoredTile::new(tile_id, genome.score(self.id, grid, tile_id), 1);
+                    heap_cost_1.push(tile);
+                }
+                Owner::Cell(plant_id) if plant_id == self.id => (),
+                Owner::Cell(_) => {
+                    let tile = ScoredTile::new(tile_id, genome.score(self.id, grid, tile_id), 2);
+                    heap_cost_2.push(tile);
+                }
+            });
+
+        [heap_cost_1.into_vec(), heap_cost_2.into_vec()]
+            .concat()
+            .into_iter()
             .sorted_unstable()
+            .rev()
             .filter(|tile| {
                 if k >= tile.cost {
                     k -= tile.cost;
@@ -103,7 +112,7 @@ impl ActivePlant {
                     false
                 }
             })
-            .map(|ranked_tile| ranked_tile.id())
+            .map(|tile| tile.id())
             .collect()
     }
 
@@ -138,6 +147,39 @@ impl ActivePlant {
                 }
             });
         neighboring_cells
+    }
+}
+
+#[derive(Debug, Clone)]
+struct CostHeap {
+    size: usize,
+    heap: BinaryHeap<Reverse<ScoredTile>>,
+}
+
+impl CostHeap {
+    fn new(size: usize) -> Self {
+        CostHeap {
+            size,
+            heap: BinaryHeap::with_capacity(size),
+        }
+    }
+
+    fn push(&mut self, scored_tile: ScoredTile) {
+        if self.heap.len() < self.size {
+            self.heap.push(Reverse(scored_tile));
+        } else if let Some(Reverse(min)) = self.heap.peek() {
+            if scored_tile > *min {
+                *self.heap.peek_mut().unwrap() = Reverse(scored_tile);
+            }
+        }
+    }
+
+    fn into_vec(self) -> Vec<ScoredTile> {
+        self.heap
+            .into_sorted_vec()
+            .into_iter()
+            .map(|Reverse(tile)| tile)
+            .collect()
     }
 }
 

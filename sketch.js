@@ -38,7 +38,7 @@ const colors = [
 function setup() {
   columns = board["x_size"];
   rows = board["y_size"];
-  w = 10;
+  w = 4;
 
   createCanvas(columns * w + 100, rows * w);
 

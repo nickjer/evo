@@ -75,7 +75,7 @@ impl World {
         let top_genomes = self.organisms.top_genomes(10);
         let trial_result = trial_result::TrialResult::new(top_genomes);
         let toml = toml::to_string_pretty(&trial_result).unwrap();
-        println!("{toml}");
+        std::fs::write("trial_result.toml", toml).unwrap();
     }
 
     fn replace_owner(&mut self, tile_id: TileId, new_owner: Owner) -> Owner {

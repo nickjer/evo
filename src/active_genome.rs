@@ -8,6 +8,7 @@ use std::collections::HashMap;
 
 #[derive(Debug, Clone, CopyGetters, Getters, Serialize)]
 pub struct ActiveGenome {
+    #[serde(flatten)]
     #[getset(get = "pub")]
     genome: Genome,
     num_plants: usize,

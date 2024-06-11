@@ -7,12 +7,19 @@ use serde::Serialize;
 
 #[derive(Debug, Copy, Clone, Constructor, Getters, Serialize)]
 pub struct Genome {
+    #[serde(rename = "singlet")]
     #[getset(get = "pub")]
     singlet_fn: SingletFn,
+
+    #[serde(rename = "doublet")]
     #[getset(get = "pub")]
     doublet_fn: DoubletFn,
+
+    #[serde(rename = "triplet_l")]
     #[getset(get = "pub")]
     triplet_l_fn: TripletFn,
+
+    #[serde(rename = "triplet_i")]
     #[getset(get = "pub")]
     triplet_i_fn: TripletFn,
 }

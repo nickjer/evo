@@ -6,6 +6,7 @@ use crate::owner::Owner;
 use crate::plants::PlantId;
 use crate::rand::Rng;
 use crate::tiles::TileId;
+use crate::trial_result;
 use std::io::Write;
 
 #[derive(Debug, Clone)]
@@ -71,10 +72,10 @@ impl World {
             tile_count += 1;
         }
 
-        let top_genomes = self.organisms.top_genomes(2);
-        top_genomes.iter().for_each(|genome| {
-            println!("Genome: {:?}", genome);
-        });
+        let top_genomes = self.organisms.top_genomes(10);
+        let trial_result = trial_result::TrialResult::new(top_genomes);
+        let toml = toml::to_string_pretty(&trial_result).unwrap();
+        println!("{toml}");
     }
 
     fn replace_owner(&mut self, tile_id: TileId, new_owner: Owner) -> Owner {

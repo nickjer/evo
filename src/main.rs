@@ -20,6 +20,7 @@ mod singlet_fn;
 mod step;
 mod tile_id_builder;
 mod tiles;
+mod trial_result;
 mod triplet_fn;
 mod triplet_i;
 mod triplet_l;

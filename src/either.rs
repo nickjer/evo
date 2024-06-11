@@ -1,6 +1,8 @@
 use derive_more::{IsVariant, Unwrap};
+use serde::Serialize;
 
-#[derive(Debug, Copy, Clone, IsVariant, Unwrap)]
+#[derive(Debug, Copy, Clone, IsVariant, Unwrap, Serialize)]
+#[serde(tag = "type")]
 pub enum Either<L, D> {
     Living(L),
     Dead(D),

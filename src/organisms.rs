@@ -88,10 +88,9 @@ impl Organisms {
         active_plant.choose_tiles(grid, active_genome)
     }
 
-    pub fn top_genomes(&mut self, n: usize) -> Vec<Either<&ActiveGenome, &InactiveGenome>> {
+    pub fn top_genomes(&mut self, n: usize) -> Vec<&Either<ActiveGenome, InactiveGenome>> {
         (&self.genomes)
             .into_iter()
-            .map(|genome| genome.as_ref())
             .k_largest_by_key(n, |genome| match genome {
                 Living(active_genome) => active_genome.max_yield(),
                 Dead(inactive_genome) => inactive_genome.max_yield(),

@@ -3,8 +3,9 @@ use crate::singlet_fn::SingletFn;
 use crate::triplet_fn::TripletFn;
 use derive_more::Constructor;
 use getset::Getters;
+use serde::Serialize;
 
-#[derive(Debug, Copy, Clone, Constructor, Getters)]
+#[derive(Debug, Copy, Clone, Constructor, Getters, Serialize)]
 pub struct Genome {
     #[getset(get = "pub")]
     singlet_fn: SingletFn,

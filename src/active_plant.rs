@@ -77,6 +77,8 @@ impl ActivePlant {
             return Vec::new();
         }
 
+        genome.set_max_yield(energy_yield);
+
         let mut k = energy_yield / energy_usage;
         if k == 0 {
             return Vec::new();

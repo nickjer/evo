@@ -2,14 +2,18 @@ use crate::genome::Genome;
 use crate::grid::Grid;
 use crate::plants::PlantId;
 use crate::tiles::TileId;
-use getset::Getters;
+use getset::{CopyGetters, Getters};
+use serde::Serialize;
 use std::collections::HashMap;
 
-#[derive(Debug, Clone, Getters)]
+#[derive(Debug, Clone, CopyGetters, Getters, Serialize)]
 pub struct ActiveGenome {
     #[getset(get = "pub")]
     genome: Genome,
     num_plants: usize,
+    #[getset(get_copy = "pub")]
+    max_yield: usize,
+    #[serde(skip)]
     score_map: HashMap<TileId, (usize, f32)>,
 }
 
@@ -18,6 +22,7 @@ impl ActiveGenome {
         Self {
             genome,
             num_plants: 0,
+            max_yield: 0,
             score_map: HashMap::default(),
         }
     }
@@ -34,6 +39,10 @@ impl ActiveGenome {
     pub fn decrement(&mut self) -> usize {
         self.num_plants -= 1;
         self.num_plants
+    }
+
+    pub fn set_max_yield(&mut self, max_yield: usize) {
+        self.max_yield = std::cmp::max(self.max_yield, max_yield);
     }
 
     pub fn score(&mut self, plant_id: PlantId, grid: &Grid, tile_id: TileId) -> f32 {

@@ -57,9 +57,9 @@ impl World {
             let plant_ids = self.organisms.active_plants();
             if plant_ids.len() < 2 {
                 if plant_ids.is_empty() {
-                    println!("All plants died");
+                    println!("No plants survived");
                 } else {
-                    println!("1 plant survived");
+                    println!("One plant survived");
                 }
                 break;
             }
@@ -70,6 +70,11 @@ impl World {
             }
             tile_count += 1;
         }
+
+        let top_genomes = self.organisms.top_genomes(2);
+        top_genomes.iter().for_each(|genome| {
+            println!("Genome: {:?}", genome);
+        });
     }
 
     fn replace_owner(&mut self, tile_id: TileId, new_owner: Owner) -> Owner {

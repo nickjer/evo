@@ -1,15 +1,15 @@
 use crate::active_genome::ActiveGenome;
 use crate::either::Either;
 use crate::inactive_genome::InactiveGenome;
-use derive_more::{Display, From, Into};
+use derive_more::{Display, From, Into, IntoIterator};
 
 #[derive(
     Debug, Copy, Clone, Default, Display, Hash, PartialEq, Eq, PartialOrd, Ord, From, Into,
 )]
 pub struct GenomeId(usize);
 
-#[derive(Debug, Clone, Default)]
-pub struct Genomes(Vec<Either<ActiveGenome, InactiveGenome>>);
+#[derive(Debug, Clone, Default, IntoIterator)]
+pub struct Genomes(#[into_iterator(ref)] Vec<Either<ActiveGenome, InactiveGenome>>);
 
 impl Genomes {
     pub fn len(&self) -> usize {

@@ -1,6 +1,6 @@
 use crate::active_genome::ActiveGenome;
 use crate::active_plant::ActivePlant;
-use crate::either::Either::*;
+use crate::either::Either::{self, *};
 use crate::genome::Genome;
 use crate::genomes::{GenomeId, Genomes};
 use crate::grid::Grid;
@@ -8,6 +8,7 @@ use crate::inactive_genome::InactiveGenome;
 use crate::inactive_plant::InactivePlant;
 use crate::plants::{PlantId, Plants};
 use crate::tiles::TileId;
+use itertools::Itertools;
 
 #[derive(Debug, Clone, Default)]
 pub struct Organisms {
@@ -87,6 +88,17 @@ impl Organisms {
         active_plant.choose_tiles(grid, active_genome)
     }
 
+    pub fn top_genomes(&mut self, n: usize) -> Vec<Either<&ActiveGenome, &InactiveGenome>> {
+        (&self.genomes)
+            .into_iter()
+            .map(|genome| genome.as_ref())
+            .k_largest_by_key(n, |genome| match genome {
+                Living(active_genome) => active_genome.max_yield(),
+                Dead(inactive_genome) => inactive_genome.max_yield(),
+            })
+            .collect()
+    }
+
     fn increment_genome(&mut self, genome_id: GenomeId) {
         self.genomes[genome_id].as_mut().unwrap_living().increment();
     }
@@ -103,7 +115,8 @@ impl Organisms {
     fn remove_genome(&mut self, genome_id: GenomeId) {
         let active_genome = self.genomes[genome_id].as_ref().unwrap_living();
         let genome = active_genome.genome();
-        self.genomes[genome_id] = Dead(InactiveGenome::new(*genome));
+        let max_yield = active_genome.max_yield();
+        self.genomes[genome_id] = Dead(InactiveGenome::new(*genome, max_yield));
         self.active_genomes.retain(|&id| id != genome_id);
     }
 }

@@ -1,8 +1,8 @@
 use crate::owner::Owner;
 use crate::plants::PlantId;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Copy, Clone, Deserialize)]
+#[derive(Debug, Copy, Clone, Deserialize, Serialize)]
 pub struct DoubletFn {
     #[serde(rename = "ee")]
     doublet_ee: f32,

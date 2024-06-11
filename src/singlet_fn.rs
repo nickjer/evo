@@ -1,7 +1,7 @@
 use crate::owner::Owner;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Copy, Clone, Deserialize)]
+#[derive(Debug, Copy, Clone, Deserialize, Serialize)]
 pub struct SingletFn {
     #[serde(rename = "e")]
     singlet_e: f32,

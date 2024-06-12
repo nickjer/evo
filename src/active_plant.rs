@@ -1,6 +1,3 @@
-use std::cmp::Reverse;
-use std::collections::BinaryHeap;
-
 use crate::active_genome::ActiveGenome;
 use crate::genomes::GenomeId;
 use crate::grid::Grid;
@@ -9,9 +6,12 @@ use crate::plants::PlantId;
 use crate::simple_graph::{all_connected, components, SimpleGraph};
 use crate::tiles::TileId;
 use derive_more::Constructor;
+use fixedbitset::FixedBitSet;
 use getset::CopyGetters;
 use itertools::Itertools;
 use nohash::{IntMap, IntSet};
+use std::cmp::Reverse;
+use std::collections::BinaryHeap;
 
 #[derive(Debug, Clone, CopyGetters, Default)]
 pub struct ActivePlant {
@@ -48,10 +48,11 @@ impl ActivePlant {
 
     pub fn abandon(&mut self, tile_id: TileId, grid: &Grid) -> Vec<TileId> {
         let neighboring_cells: Vec<_> = self.remove_cell(tile_id, grid).into_iter().collect();
+        let mut visited = FixedBitSet::with_capacity(grid.size());
 
         // Make sure all neighboring cells are connected to each other
-        if !all_connected(&self.cells, &neighboring_cells, grid.size()) {
-            let mut components = components(&self.cells, grid.size());
+        if !all_connected(&self.cells, &neighboring_cells, &mut visited) {
+            let mut components = components(&self.cells, &mut visited);
             components.sort_by_key(|component| component.len());
             let dead_cells: Vec<TileId> = components
                 .split_last()

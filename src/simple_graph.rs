@@ -2,6 +2,7 @@ use crate::neighbors::Neighbors;
 use crate::neighbors::NEIGHBOR_COUNT;
 use crate::tiles::TileId;
 use derive_more::IntoIterator;
+use fixedbitset::FixedBitSet;
 use nohash::{IntMap, IntSet};
 use std::collections::VecDeque;
 
@@ -56,10 +57,16 @@ impl SimpleGraph {
     }
 }
 
-pub fn components(graph: &SimpleGraph, capacity: usize) -> Vec<Vec<TileId>> {
-    let mut visited = fixedbitset::FixedBitSet::with_capacity(capacity);
+pub fn components(graph: &SimpleGraph, visited: &mut FixedBitSet) -> Vec<Vec<TileId>> {
     let mut components = Vec::new();
     let node_count = graph.node_count();
+
+    let mut component = Vec::with_capacity(node_count);
+    visited
+        .ones()
+        .for_each(|node_id| component.push(node_id.into()));
+    components.push(component);
+
     for node_id in graph.nodes() {
         if !visited.contains(node_id.into()) {
             let mut component = Vec::with_capacity(node_count);
@@ -80,13 +87,12 @@ pub fn components(graph: &SimpleGraph, capacity: usize) -> Vec<Vec<TileId>> {
     components
 }
 
-pub fn all_connected(graph: &SimpleGraph, node_ids: &[TileId], capacity: usize) -> bool {
+pub fn all_connected(graph: &SimpleGraph, node_ids: &[TileId], visited: &mut FixedBitSet) -> bool {
     let (first, rest) = match node_ids.split_first() {
         Some((_first, [])) => return true,
         Some((&first, rest)) => (first, rest),
         None => return true,
     };
-    let mut visited = fixedbitset::FixedBitSet::with_capacity(capacity);
     let mut stack = VecDeque::new();
     let mut search: IntSet<_> = rest.iter().copied().collect();
 

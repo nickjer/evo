@@ -52,16 +52,26 @@ impl ActivePlant {
 
         // Make sure all neighboring cells are connected to each other
         if !all_connected(&self.cells, &neighboring_cells, &mut visited) {
-            let mut components = components(&self.cells, &mut visited);
-            components.sort_by_key(|component| component.len());
-            let dead_cells: Vec<TileId> = components
-                .split_last()
-                .unwrap()
-                .1
-                .iter()
-                .flat_map(|component| component.iter())
-                .copied()
-                .collect();
+            // Visited now contains a full component since it was not all connected
+            let majority = self.cells.node_count() / 2;
+            let dead_cells: Vec<TileId> = if visited.count_ones(..) > majority {
+                self.cells
+                    .nodes()
+                    .into_iter()
+                    .filter(|&tile_id| !visited.contains(tile_id.into()))
+                    .collect()
+            } else {
+                let mut components = components(&self.cells, &mut visited);
+                components.sort_by_key(|component| component.len());
+                components
+                    .split_last()
+                    .unwrap()
+                    .1
+                    .iter()
+                    .flat_map(|component| component.iter())
+                    .copied()
+                    .collect()
+            };
             dead_cells.iter().for_each(|&dead_tile_id| {
                 self.remove_cell(dead_tile_id, grid);
             });

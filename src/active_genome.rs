@@ -54,36 +54,7 @@ impl ActiveGenome {
             }
         }
 
-        let owner_id_1 = grid.owner(tile_id);
-        let mut score = 0.0;
-        score += self.genome.singlet_fn().score(owner_id_1);
-        score += grid.doublets(tile_id).iter().fold(0.0, |sum, &doublet| {
-            let tile_id_2 = doublet.j();
-            sum + self
-                .genome
-                .doublet_fn()
-                .score(plant_id, owner_id_1, grid.owner(tile_id_2))
-        });
-        score += grid.triplets_l(tile_id).iter().fold(0.0, |sum, &triplet| {
-            let tile_id_2 = triplet.j();
-            let tile_id_3 = triplet.k();
-            sum + self.genome.triplet_l_fn().score(
-                plant_id,
-                owner_id_1,
-                grid.owner(tile_id_2),
-                grid.owner(tile_id_3),
-            )
-        });
-        score += grid.triplets_i(tile_id).iter().fold(0.0, |sum, &triplet| {
-            let tile_id_2 = triplet.j();
-            let tile_id_3 = triplet.k();
-            sum + self.genome.triplet_i_fn().score(
-                plant_id,
-                owner_id_1,
-                grid.owner(tile_id_2),
-                grid.owner(tile_id_3),
-            )
-        });
+        let score = self.genome.score(plant_id, grid, tile_id);
         self.score_map.insert(tile_id, (nonce, score));
         score
     }

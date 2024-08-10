@@ -39,10 +39,13 @@ impl Genome {
 
     pub fn score(&mut self, plant_id: PlantId, grid: &Grid, tile_id: TileId) -> f32 {
         let owner_id_1 = grid.owner(tile_id);
+        let mut count = 0;
         let mut score = 0.0;
+        count += 1;
         score += self.singlet_fn().score(owner_id_1);
         score += grid.doublets(tile_id).iter().fold(0.0, |sum, &doublet| {
             let tile_id_2 = doublet.j();
+            count += 1;
             sum + self
                 .doublet_fn()
                 .score(plant_id, owner_id_1, grid.owner(tile_id_2))
@@ -50,6 +53,7 @@ impl Genome {
         score += grid.triplets_l(tile_id).iter().fold(0.0, |sum, &triplet| {
             let tile_id_2 = triplet.j();
             let tile_id_3 = triplet.k();
+            count += 1;
             sum + self.triplet_l_fn().score(
                 plant_id,
                 owner_id_1,
@@ -60,6 +64,7 @@ impl Genome {
         score += grid.triplets_i(tile_id).iter().fold(0.0, |sum, &triplet| {
             let tile_id_2 = triplet.j();
             let tile_id_3 = triplet.k();
+            count += 1;
             sum + self.triplet_i_fn().score(
                 plant_id,
                 owner_id_1,
@@ -67,6 +72,6 @@ impl Genome {
                 grid.owner(tile_id_3),
             )
         });
-        score
+        score / count as f32
     }
 }

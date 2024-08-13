@@ -1,4 +1,4 @@
-use crate::owner::Owner;
+use crate::entity::Entity;
 use crate::plants::PlantId;
 use serde::{Deserialize, Serialize};
 
@@ -89,50 +89,50 @@ impl TripletFn {
         }
     }
 
-    pub fn score(&self, plant_s: PlantId, owner_i: Owner, owner_j: Owner, owner_k: Owner) -> f32 {
-        match (owner_i, owner_j, owner_k) {
-            (Owner::Empty, Owner::Empty, Owner::Empty) => self.triplet_eee,
-            (Owner::Empty, Owner::Empty, Owner::Cell(plant_2)) if plant_2 == plant_s => {
+    pub fn score(&self, plant_s: PlantId, entity_i: Entity, entity_j: Entity, entity_k: Entity) -> f32 {
+        match (entity_i, entity_j, entity_k) {
+            (Entity::Empty, Entity::Empty, Entity::Empty) => self.triplet_eee,
+            (Entity::Empty, Entity::Empty, Entity::Cell(plant_2)) if plant_2 == plant_s => {
                 self.triplet_ees
             }
-            (Owner::Empty, Owner::Empty, Owner::Cell(_)) => self.triplet_eeo,
-            (Owner::Empty, Owner::Cell(plant_1), Owner::Empty) if plant_1 == plant_s => {
+            (Entity::Empty, Entity::Empty, Entity::Cell(_)) => self.triplet_eeo,
+            (Entity::Empty, Entity::Cell(plant_1), Entity::Empty) if plant_1 == plant_s => {
                 self.triplet_ese
             }
-            (Owner::Empty, Owner::Cell(plant_1), Owner::Cell(plant_2))
+            (Entity::Empty, Entity::Cell(plant_1), Entity::Cell(plant_2))
                 if plant_1 == plant_s && plant_2 == plant_s =>
             {
                 self.triplet_ess
             }
-            (Owner::Empty, Owner::Cell(plant_1), Owner::Cell(_)) if plant_1 == plant_s => {
+            (Entity::Empty, Entity::Cell(plant_1), Entity::Cell(_)) if plant_1 == plant_s => {
                 self.triplet_eso
             }
-            (Owner::Empty, Owner::Cell(_), Owner::Empty) => self.triplet_eoe,
-            (Owner::Empty, Owner::Cell(_), Owner::Cell(plant_2)) if plant_2 == plant_s => {
+            (Entity::Empty, Entity::Cell(_), Entity::Empty) => self.triplet_eoe,
+            (Entity::Empty, Entity::Cell(_), Entity::Cell(plant_2)) if plant_2 == plant_s => {
                 self.triplet_eos
             }
-            (Owner::Empty, Owner::Cell(_), Owner::Cell(_)) => self.triplet_eoo,
-            (Owner::Cell(_), Owner::Empty, Owner::Empty) => self.triplet_oee,
-            (Owner::Cell(_), Owner::Empty, Owner::Cell(plant_2)) if plant_2 == plant_s => {
+            (Entity::Empty, Entity::Cell(_), Entity::Cell(_)) => self.triplet_eoo,
+            (Entity::Cell(_), Entity::Empty, Entity::Empty) => self.triplet_oee,
+            (Entity::Cell(_), Entity::Empty, Entity::Cell(plant_2)) if plant_2 == plant_s => {
                 self.triplet_oes
             }
-            (Owner::Cell(_), Owner::Empty, Owner::Cell(_)) => self.triplet_oeo,
-            (Owner::Cell(_), Owner::Cell(plant_1), Owner::Empty) if plant_1 == plant_s => {
+            (Entity::Cell(_), Entity::Empty, Entity::Cell(_)) => self.triplet_oeo,
+            (Entity::Cell(_), Entity::Cell(plant_1), Entity::Empty) if plant_1 == plant_s => {
                 self.triplet_ose
             }
-            (Owner::Cell(_), Owner::Cell(plant_1), Owner::Cell(plant_2))
+            (Entity::Cell(_), Entity::Cell(plant_1), Entity::Cell(plant_2))
                 if plant_1 == plant_s && plant_2 == plant_s =>
             {
                 self.triplet_oss
             }
-            (Owner::Cell(_), Owner::Cell(plant_1), Owner::Cell(_)) if plant_1 == plant_s => {
+            (Entity::Cell(_), Entity::Cell(plant_1), Entity::Cell(_)) if plant_1 == plant_s => {
                 self.triplet_oso
             }
-            (Owner::Cell(_), Owner::Cell(_), Owner::Empty) => self.triplet_ooe,
-            (Owner::Cell(_), Owner::Cell(_), Owner::Cell(plant_2)) if plant_2 == plant_s => {
+            (Entity::Cell(_), Entity::Cell(_), Entity::Empty) => self.triplet_ooe,
+            (Entity::Cell(_), Entity::Cell(_), Entity::Cell(plant_2)) if plant_2 == plant_s => {
                 self.triplet_oos
             }
-            (Owner::Cell(_), Owner::Cell(_), Owner::Cell(_)) => self.triplet_ooo,
+            (Entity::Cell(_), Entity::Cell(_), Entity::Cell(_)) => self.triplet_ooo,
         }
     }
 }

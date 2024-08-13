@@ -2,7 +2,7 @@ use crate::genome::Genome;
 use crate::genomes::GenomeId;
 use crate::grid::Grid;
 use crate::organisms::Organisms;
-use crate::owner::Owner;
+use crate::entity::Entity;
 use crate::plants::PlantId;
 use crate::rand::Rng;
 use crate::tiles::TileId;
@@ -50,7 +50,7 @@ impl World {
                     self.remove_plant(plant_id, rng);
                 } else {
                     chosen_tiles.into_iter().for_each(|tile_id| {
-                        self.replace_owner(tile_id, Owner::Cell(plant_id));
+                        self.replace_entity(tile_id, Entity::Cell(plant_id));
                     });
                 }
             });
@@ -78,21 +78,21 @@ impl World {
         std::fs::write("trial_result.toml", toml).unwrap();
     }
 
-    fn replace_owner(&mut self, tile_id: TileId, new_owner: Owner) -> Owner {
-        let old_owner = self.grid.replace_owner(tile_id, new_owner);
+    fn replace_entity(&mut self, tile_id: TileId, new_entity: Entity) -> Entity {
+        let old_entity = self.grid.replace_entity(tile_id, new_entity);
 
-        if old_owner != new_owner {
-            if let Owner::Cell(plant_id) = new_owner {
+        if old_entity != new_entity {
+            if let Entity::Cell(plant_id) = new_entity {
                 self.organisms.occupy(plant_id, tile_id, &self.grid);
             }
 
-            if let Owner::Cell(old_plant_id) = old_owner {
+            if let Entity::Cell(old_plant_id) = old_entity {
                 let dead_cells = self.organisms.abandon(old_plant_id, tile_id, &self.grid);
                 self.set_empty(&dead_cells);
             }
         }
 
-        old_owner
+        old_entity
     }
 
     fn remove_plant(&mut self, plant_id: PlantId, rng: &mut Rng) {
@@ -113,7 +113,7 @@ impl World {
                 } else {
                     self.organisms.add_plant(genome_id)
                 };
-                self.replace_owner(tile_id, Owner::Cell(plant_id));
+                self.replace_entity(tile_id, Entity::Cell(plant_id));
             }
         }
         self.organisms.remove_plant(plant_id);
@@ -121,7 +121,7 @@ impl World {
 
     fn set_empty(&mut self, tile_ids: &[TileId]) {
         tile_ids.iter().for_each(|&tile_id| {
-            self.grid.replace_owner(tile_id, Owner::Empty);
+            self.grid.replace_entity(tile_id, Entity::Empty);
         });
     }
 
@@ -131,7 +131,7 @@ impl World {
 
     pub fn add_plant(&mut self, genome_id: GenomeId, tile_id: TileId) {
         let new_plant_id = self.organisms.add_plant(genome_id);
-        self.replace_owner(tile_id, Owner::Cell(new_plant_id));
+        self.replace_entity(tile_id, Entity::Cell(new_plant_id));
     }
 
     fn write_snapshot(writer: &mut impl Write, snapshot: Vec<Vec<usize>>) {
@@ -152,14 +152,14 @@ impl World {
 
     fn tile_snapshot(&self) -> Vec<Vec<usize>> {
         self.grid
-            .owner_chunks(self.col_size)
+            .entity_chunks(self.col_size)
             .into_iter()
             .map(|chunk| {
                 chunk
                     .iter()
-                    .map(|&owner| match owner {
-                        Owner::Empty => 0,
-                        Owner::Cell(plant_id) => usize::from(plant_id) + 1,
+                    .map(|&entity| match entity {
+                        Entity::Empty => 0,
+                        Entity::Cell(plant_id) => usize::from(plant_id) + 1,
                     })
                     .collect()
             })

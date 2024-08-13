@@ -3,7 +3,7 @@ use crate::doublet::Doublet;
 use crate::genome::Genome;
 use crate::grid::Grid;
 use crate::neighbors::Neighbors;
-use crate::owner::Owner;
+use crate::entity::Entity;
 use crate::position::Position;
 use crate::tile_id_builder::TileIdBuilder;
 use crate::triplet_i::TripletI;
@@ -56,9 +56,9 @@ impl WorldBuilder {
                 let triplets_l = TripletL::build(tile_id_builder.clone());
                 let triplets_i = TripletI::build(tile_id_builder.clone());
                 let blob = Blob::build(tile_id_builder.clone());
-                let owner = Owner::Empty;
+                let entity = Entity::Empty;
 
-                grid.push(owner, neighbors, doublets, triplets_l, triplets_i, blob);
+                grid.push(entity, neighbors, doublets, triplets_l, triplets_i, blob);
             }
         }
         let mut world = World::new(self.y_size, grid, self.seed_rate, self.mutation_rate);

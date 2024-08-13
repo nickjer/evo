@@ -1,4 +1,4 @@
-use crate::owner::Owner;
+use crate::entity::Entity;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Copy, Clone, Deserialize, Serialize)]
@@ -24,10 +24,10 @@ impl SingletFn {
         }
     }
 
-    pub fn score(&self, owner_i: Owner) -> f32 {
-        match owner_i {
-            Owner::Empty => self.singlet_e,
-            Owner::Cell(_) => self.singlet_o,
+    pub fn score(&self, entity_i: Entity) -> f32 {
+        match entity_i {
+            Entity::Empty => self.singlet_e,
+            Entity::Cell(_) => self.singlet_o,
         }
     }
 }

@@ -11,7 +11,7 @@ mod inactive_genome;
 mod inactive_plant;
 mod neighbors;
 mod organisms;
-mod owner;
+mod entity;
 mod plants;
 mod position;
 mod rand;

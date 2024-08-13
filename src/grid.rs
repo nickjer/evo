@@ -1,7 +1,7 @@
 use crate::blob::Blob;
 use crate::doublet::Doublet;
 use crate::neighbors::Neighbors;
-use crate::owner::Owner;
+use crate::entity::Entity;
 use crate::tiles::TileId;
 use crate::tiles::Tiles;
 use crate::triplet_i::TripletI;
@@ -12,7 +12,7 @@ use getset::CopyGetters;
 pub struct Grid {
     #[get_copy = "pub"]
     size: usize,
-    owners: Tiles<Owner>,
+    entities: Tiles<Entity>,
     neighbors: Tiles<Neighbors>,
     doublets: Tiles<[Doublet; 4]>,
     triplets_l: Tiles<[TripletL; 8]>,
@@ -22,13 +22,13 @@ pub struct Grid {
 }
 
 impl Grid {
-    pub fn owner_chunks(&self, chunk_size: usize) -> Vec<&[Owner]> {
-        self.owners.chunks(chunk_size).collect()
+    pub fn entity_chunks(&self, chunk_size: usize) -> Vec<&[Entity]> {
+        self.entities.chunks(chunk_size).collect()
     }
 
     pub fn push(
         &mut self,
-        owner: Owner,
+        entity: Entity,
         neighbors: Neighbors,
         doublets: [Doublet; 4],
         triplets_l: [TripletL; 8],
@@ -36,7 +36,7 @@ impl Grid {
         blob: Blob,
     ) {
         self.size += 1;
-        self.owners.push(owner);
+        self.entities.push(entity);
         self.neighbors.push(neighbors);
         self.doublets.push(doublets);
         self.triplets_l.push(triplets_l);
@@ -46,7 +46,7 @@ impl Grid {
     }
 
     pub fn is_empty(&self, tile_id: TileId) -> bool {
-        self.owners[tile_id].is_empty()
+        self.entities[tile_id].is_empty()
     }
 
     pub fn nonce(&self, tile_id: TileId) -> usize {
@@ -60,16 +60,16 @@ impl Grid {
         })
     }
 
-    pub fn owner(&self, tile_id: TileId) -> Owner {
-        self.owners[tile_id]
+    pub fn entity(&self, tile_id: TileId) -> Entity {
+        self.entities[tile_id]
     }
 
-    pub fn replace_owner(&mut self, tile_id: TileId, new_owner: Owner) -> Owner {
-        let old_owner = std::mem::replace(&mut self.owners[tile_id], new_owner);
-        if old_owner != new_owner {
+    pub fn replace_entity(&mut self, tile_id: TileId, new_entity: Entity) -> Entity {
+        let old_entity = std::mem::replace(&mut self.entities[tile_id], new_entity);
+        if old_entity != new_entity {
             self.touch(tile_id)
         }
-        old_owner
+        old_entity
     }
 
     pub fn neighbors(&self, tile_id: TileId) -> &Neighbors {

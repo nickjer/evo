@@ -1,7 +1,7 @@
 use crate::active_genome::ActiveGenome;
 use crate::genomes::GenomeId;
 use crate::grid::Grid;
-use crate::owner::Owner;
+use crate::entity::Entity;
 use crate::plants::PlantId;
 use crate::simple_graph::{all_connected, components, SimpleGraph};
 use crate::tiles::TileId;
@@ -100,14 +100,14 @@ impl ActivePlant {
 
         self.surface_map
             .keys()
-            .for_each(|&tile_id| match grid.owner(tile_id) {
-                Owner::Empty => {
+            .for_each(|&tile_id| match grid.entity(tile_id) {
+                Entity::Empty => {
                     heap_cost_1.push_with(|| {
                         ScoredTile::new(tile_id, genome.score(self.id, grid, tile_id), 1)
                     });
                 }
-                Owner::Cell(plant_id) if plant_id == self.id => (),
-                Owner::Cell(_) => {
+                Entity::Cell(plant_id) if plant_id == self.id => (),
+                Entity::Cell(_) => {
                     heap_cost_2.push_with(|| {
                         ScoredTile::new(tile_id, genome.score(self.id, grid, tile_id), 2)
                     });

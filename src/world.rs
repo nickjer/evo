@@ -47,20 +47,19 @@ impl World {
                 let mut points = self.organisms.points(plant_id, &self.grid);
                 if points == 0 {
                     self.remove_plant(plant_id, rng);
-                } else {
-                    while let Some(tile_id) =
-                        self.organisms.choose_tile(plant_id, &self.grid, points)
-                    {
-                        let old_entity = self.replace_entity(tile_id, Entity::Cell(plant_id));
-                        if old_entity == Entity::Empty {
-                            points = points.checked_sub(1).unwrap();
-                        } else {
-                            points = points.checked_sub(2).unwrap();
-                        }
+                    return;
+                }
 
-                        if points == 0 {
-                            break;
-                        }
+                while let Some(tile_id) = self.organisms.choose_tile(plant_id, &self.grid, points) {
+                    let old_entity = self.replace_entity(tile_id, Entity::Cell(plant_id));
+                    if old_entity == Entity::Empty {
+                        points = points.checked_sub(1).unwrap();
+                    } else {
+                        points = points.checked_sub(2).unwrap();
+                    }
+
+                    if points == 0 {
+                        break;
                     }
                 }
             });

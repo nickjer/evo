@@ -4,6 +4,7 @@ use crate::grid::Grid;
 use crate::plants::PlantId;
 use crate::rand::Rng;
 use crate::tiles::TileId;
+use approx::ulps_eq;
 use getset::{CopyGetters, Getters};
 use nohash::IntSet;
 use serde::Serialize;
@@ -62,7 +63,8 @@ impl ActiveGenome {
             return None;
         }
 
-        let tile_scores: Vec<_> = available_tiles
+        let mut count_dupes: usize = 1;
+        available_tiles
             .into_iter()
             .filter_map(|tile_id| match grid.entity(tile_id) {
                 Entity::Empty => Some((tile_id, self.score(plant_id, grid, tile_id))),
@@ -75,12 +77,17 @@ impl ActiveGenome {
                     }
                 }
             })
-            .collect();
-
-        tile_scores
-            .into_iter()
             .reduce(|(max_tile_id, max_score), (tile_id, score)| {
-                if score > max_score {
+                if ulps_eq!(max_score, score, epsilon = 1.0e-6, max_ulps = 10) {
+                    count_dupes += 1;
+                    let rate = 1.0 / count_dupes as f32;
+                    if rng.sample() < rate {
+                        (tile_id, score)
+                    } else {
+                        (max_tile_id, max_score)
+                    }
+                } else if score > max_score {
+                    count_dupes = 0;
                     (tile_id, score)
                 } else {
                     (max_tile_id, max_score)

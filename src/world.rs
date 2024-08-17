@@ -120,9 +120,9 @@ impl World {
     fn grow_plant(&mut self, plant_id: PlantId, energy_points: usize, rng: &mut Rng) {
         let mut energy_points = energy_points;
 
-        while let Some(tile_id) = self
-            .organisms
-            .choose_tile(plant_id, &self.grid, energy_points, rng)
+        while let Some(tile_id) =
+            self.organisms
+                .choose_tile(plant_id, &self.grid, energy_points, rng)
         {
             let old_entity = self.replace_entity(tile_id, Entity::Cell(plant_id));
             if old_entity == Entity::Empty {

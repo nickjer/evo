@@ -44,23 +44,12 @@ impl World {
         while tile_count < max_steps {
             let plant_ids = self.organisms.active_plants().to_owned();
             plant_ids.into_iter().rev().for_each(|plant_id| {
-                let mut points = self.organisms.points(plant_id, &self.grid);
-                if points == 0 {
-                    self.remove_plant(plant_id, rng);
-                    return;
-                }
-
-                while let Some(tile_id) = self.organisms.choose_tile(plant_id, &self.grid, points) {
-                    let old_entity = self.replace_entity(tile_id, Entity::Cell(plant_id));
-                    if old_entity == Entity::Empty {
-                        points = points.checked_sub(1).unwrap();
-                    } else {
-                        points = points.checked_sub(2).unwrap();
+                let plant = self.organisms.plant(plant_id);
+                match plant.energy_points(&self.grid) {
+                    energy_points if energy_points > 0 => {
+                        self.grow_plant(plant_id, energy_points, rng)
                     }
-
-                    if points == 0 {
-                        break;
-                    }
+                    _ => self.remove_plant(plant_id, rng),
                 }
             });
 
@@ -126,6 +115,26 @@ impl World {
             }
         }
         self.organisms.remove_plant(plant_id);
+    }
+
+    fn grow_plant(&mut self, plant_id: PlantId, energy_points: usize, rng: &mut Rng) {
+        let mut energy_points = energy_points;
+
+        while let Some(tile_id) = self
+            .organisms
+            .choose_tile(plant_id, &self.grid, energy_points, rng)
+        {
+            let old_entity = self.replace_entity(tile_id, Entity::Cell(plant_id));
+            if old_entity == Entity::Empty {
+                energy_points = energy_points.checked_sub(1).unwrap();
+            } else {
+                energy_points = energy_points.checked_sub(2).unwrap();
+            }
+
+            if energy_points == 0 {
+                break;
+            }
+        }
     }
 
     fn set_empty(&mut self, tile_ids: &[TileId]) {

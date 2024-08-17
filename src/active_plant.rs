@@ -76,7 +76,7 @@ impl ActivePlant {
         Vec::new()
     }
 
-    pub fn points(&self, grid: &Grid) -> usize {
+    pub fn energy_points(&self, grid: &Grid) -> usize {
         let energy_usage = self.energy_usage();
         if energy_usage == 0 {
             return 0;

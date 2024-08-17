@@ -2,6 +2,7 @@ use crate::entity::Entity;
 use crate::genome::Genome;
 use crate::grid::Grid;
 use crate::plants::PlantId;
+use crate::rand::Rng;
 use crate::tiles::TileId;
 use getset::{CopyGetters, Getters};
 use nohash::IntSet;
@@ -55,6 +56,7 @@ impl ActiveGenome {
         available_tiles: IntSet<TileId>,
         plant_id: PlantId,
         points: usize,
+        rng: &mut Rng,
     ) -> Option<TileId> {
         if points == 0 {
             return None;

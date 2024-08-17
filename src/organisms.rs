@@ -7,6 +7,7 @@ use crate::grid::Grid;
 use crate::inactive_genome::InactiveGenome;
 use crate::inactive_plant::InactivePlant;
 use crate::plants::{PlantId, Plants};
+use crate::rand::Rng;
 use crate::tiles::TileId;
 use itertools::Itertools;
 
@@ -85,16 +86,18 @@ impl Organisms {
         id
     }
 
-    pub fn points(&self, plant_id: PlantId, grid: &Grid) -> usize {
-        self.plant(plant_id).points(grid)
-    }
-
-    pub fn choose_tile(&self, plant_id: PlantId, grid: &Grid, points: usize) -> Option<TileId> {
+    pub fn choose_tile(
+        &self,
+        plant_id: PlantId,
+        grid: &Grid,
+        points: usize,
+        rng: &mut Rng,
+    ) -> Option<TileId> {
         let active_plant = self.plant(plant_id);
         let available_tiles = active_plant.available_tiles();
         let genome_id = active_plant.genome_id();
         let active_genome = self.genome(genome_id);
-        active_genome.choose_tile(grid, available_tiles, plant_id, points)
+        active_genome.choose_tile(grid, available_tiles, plant_id, points, rng)
     }
 
     pub fn top_genomes(&mut self, n: usize) -> Vec<&Either<ActiveGenome, InactiveGenome>> {

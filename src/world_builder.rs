@@ -1,9 +1,9 @@
 use crate::blob::Blob;
 use crate::doublet::Doublet;
+use crate::entity::Entity;
 use crate::genome::Genome;
 use crate::grid::Grid;
 use crate::neighbors::Neighbors;
-use crate::entity::Entity;
 use crate::position::Position;
 use crate::tile_id_builder::TileIdBuilder;
 use crate::triplet_i::TripletI;

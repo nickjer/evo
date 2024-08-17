@@ -28,10 +28,13 @@ impl Organisms {
     }
 
     pub fn occupy(&mut self, plant_id: PlantId, tile_id: TileId, grid: &Grid) {
-        self.plants[plant_id]
+        let active_plant = self.plants[plant_id].as_mut().unwrap_living();
+        let energy_yield = active_plant.occupy(tile_id, grid);
+
+        let genome = self.genomes[active_plant.genome_id()]
             .as_mut()
-            .unwrap_living()
-            .occupy(tile_id, grid);
+            .unwrap_living();
+        genome.set_max_yield(energy_yield);
     }
 
     pub fn abandon(&mut self, plant_id: PlantId, tile_id: TileId, grid: &Grid) -> Vec<TileId> {
@@ -65,7 +68,7 @@ impl Organisms {
     }
 
     pub fn remove_plant(&mut self, plant_id: PlantId) {
-        let active_plant = self.plants[plant_id].as_ref().unwrap_living();
+        let active_plant = self.plant(plant_id);
         let genome_id = active_plant.genome_id();
         self.decrement_genome(genome_id);
 
@@ -81,11 +84,15 @@ impl Organisms {
         id
     }
 
-    pub fn choose_tiles(&mut self, plant_id: PlantId, grid: &Grid) -> Vec<TileId> {
-        let active_plant = self.plants[plant_id].as_ref().unwrap_living();
+    pub fn points(&self, plant_id: PlantId, grid: &Grid) -> usize {
+        self.plant(plant_id).points(grid)
+    }
+
+    pub fn choose_tiles(&self, plant_id: PlantId, grid: &Grid, points: usize) -> Vec<TileId> {
+        let active_plant = self.plant(plant_id);
         let genome_id = active_plant.genome_id();
-        let active_genome = self.genomes[genome_id].as_mut().unwrap_living();
-        active_plant.choose_tiles(grid, active_genome)
+        let active_genome = self.genomes[genome_id].as_ref().unwrap_living();
+        active_plant.choose_tiles(grid, active_genome, points)
     }
 
     pub fn top_genomes(&mut self, n: usize) -> Vec<&Either<ActiveGenome, InactiveGenome>> {

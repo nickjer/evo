@@ -1,7 +1,7 @@
 use crate::active_genome::ActiveGenome;
+use crate::entity::Entity;
 use crate::genomes::GenomeId;
 use crate::grid::Grid;
-use crate::entity::Entity;
 use crate::plants::PlantId;
 use crate::simple_graph::{all_connected, components, SimpleGraph};
 use crate::tiles::TileId;
@@ -35,7 +35,7 @@ impl ActivePlant {
         self.cells.nodes()
     }
 
-    pub fn occupy(&mut self, tile_id: TileId, grid: &Grid) {
+    pub fn occupy(&mut self, tile_id: TileId, grid: &Grid) -> usize {
         let unlinked_neighbor_ids = self.cells.add_node(tile_id, grid.neighbors(tile_id));
         self.surface_map.remove(&tile_id);
         unlinked_neighbor_ids.into_iter().for_each(|neighbor_id| {
@@ -44,6 +44,7 @@ impl ActivePlant {
                 .and_modify(|count| *count += 1)
                 .or_insert(1);
         });
+        self.energy_yield(grid)
     }
 
     pub fn abandon(&mut self, tile_id: TileId, grid: &Grid) -> Vec<TileId> {
@@ -81,19 +82,18 @@ impl ActivePlant {
         Vec::new()
     }
 
-    pub fn choose_tiles(&self, grid: &Grid, genome: &mut ActiveGenome) -> Vec<TileId> {
-        let energy_yield = self.energy_yield(grid);
+    pub fn points(&self, grid: &Grid) -> usize {
         let energy_usage = self.energy_usage();
-        if energy_yield <= energy_usage {
-            return Vec::new();
+        if energy_usage == 0 {
+            return 0;
         }
 
-        genome.set_max_yield(energy_yield);
+        let energy_yield = self.energy_yield(grid);
+        energy_yield / energy_usage
+    }
 
-        let mut k = energy_yield / energy_usage;
-        if k == 0 {
-            return Vec::new();
-        }
+    pub fn choose_tiles(&self, grid: &Grid, genome: &ActiveGenome, points: usize) -> Vec<TileId> {
+        let mut k = points;
 
         let mut heap_cost_1 = MaxHeap::with_size(k);
         let mut heap_cost_2 = MaxHeap::with_size(k / 2);

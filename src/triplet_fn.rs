@@ -89,7 +89,13 @@ impl TripletFn {
         }
     }
 
-    pub fn score(&self, plant_s: PlantId, entity_i: Entity, entity_j: Entity, entity_k: Entity) -> f32 {
+    pub fn score(
+        &self,
+        plant_s: PlantId,
+        entity_i: Entity,
+        entity_j: Entity,
+        entity_k: Entity,
+    ) -> f32 {
         match (entity_i, entity_j, entity_k) {
             (Entity::Empty, Entity::Empty, Entity::Empty) => self.triplet_eee,
             (Entity::Empty, Entity::Empty, Entity::Cell(plant_2)) if plant_2 == plant_s => {

@@ -1,8 +1,8 @@
+use crate::entity::Entity;
 use crate::genome::Genome;
 use crate::genomes::GenomeId;
 use crate::grid::Grid;
 use crate::organisms::Organisms;
-use crate::entity::Entity;
 use crate::plants::PlantId;
 use crate::rand::Rng;
 use crate::tiles::TileId;
@@ -44,11 +44,11 @@ impl World {
         while tile_count < max_steps {
             let plant_ids = self.organisms.active_plants().to_owned();
             plant_ids.into_iter().rev().for_each(|plant_id| {
-                let chosen_tiles = self.organisms.choose_tiles(plant_id, &self.grid);
-
-                if chosen_tiles.is_empty() {
+                let points = self.organisms.points(plant_id, &self.grid);
+                if points == 0 {
                     self.remove_plant(plant_id, rng);
                 } else {
+                    let chosen_tiles = self.organisms.choose_tiles(plant_id, &self.grid, points);
                     chosen_tiles.into_iter().for_each(|tile_id| {
                         self.replace_entity(tile_id, Entity::Cell(plant_id));
                     });

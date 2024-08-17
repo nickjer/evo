@@ -37,7 +37,7 @@ impl Genome {
         )
     }
 
-    pub fn score(&mut self, plant_id: PlantId, grid: &Grid, tile_id: TileId) -> f32 {
+    pub fn score(&self, plant_id: PlantId, grid: &Grid, tile_id: TileId) -> f32 {
         let entity_id_1 = grid.entity(tile_id);
         let mut score = 0.0;
         score += self.singlet_fn().score(entity_id_1);

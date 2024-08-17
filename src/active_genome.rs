@@ -4,6 +4,7 @@ use crate::plants::PlantId;
 use crate::tiles::TileId;
 use getset::{CopyGetters, Getters};
 use serde::Serialize;
+use std::cell::RefCell;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, CopyGetters, Getters, Serialize)]
@@ -15,7 +16,7 @@ pub struct ActiveGenome {
     #[getset(get_copy = "pub")]
     max_yield: usize,
     #[serde(skip)]
-    score_map: HashMap<TileId, (usize, f32)>,
+    score_map: RefCell<HashMap<TileId, (usize, f32)>>,
 }
 
 impl ActiveGenome {
@@ -24,7 +25,7 @@ impl ActiveGenome {
             genome,
             num_plants: 0,
             max_yield: 0,
-            score_map: HashMap::default(),
+            score_map: RefCell::new(HashMap::default()),
         }
     }
 
@@ -46,16 +47,17 @@ impl ActiveGenome {
         self.max_yield = std::cmp::max(self.max_yield, max_yield);
     }
 
-    pub fn score(&mut self, plant_id: PlantId, grid: &Grid, tile_id: TileId) -> f32 {
+    pub fn score(&self, plant_id: PlantId, grid: &Grid, tile_id: TileId) -> f32 {
         let nonce = grid.nonce(tile_id);
-        if let Some(&(cached_nonce, cached_score)) = self.score_map.get(&tile_id) {
+        let mut score_map = self.score_map.borrow_mut();
+        if let Some(&(cached_nonce, cached_score)) = score_map.get(&tile_id) {
             if cached_nonce == nonce {
                 return cached_score;
             }
         }
 
         let score = self.genome.score(plant_id, grid, tile_id);
-        self.score_map.insert(tile_id, (nonce, score));
+        score_map.insert(tile_id, (nonce, score));
         score
     }
 }

@@ -1,7 +1,7 @@
 use crate::blob::Blob;
 use crate::doublet::Doublet;
-use crate::neighbors::Neighbors;
 use crate::entity::Entity;
+use crate::neighbors::Neighbors;
 use crate::tiles::TileId;
 use crate::tiles::Tiles;
 use crate::triplet_i::TripletI;

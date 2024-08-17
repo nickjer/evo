@@ -1,17 +1,11 @@
-use crate::active_genome::ActiveGenome;
-use crate::entity::Entity;
 use crate::genomes::GenomeId;
 use crate::grid::Grid;
 use crate::plants::PlantId;
 use crate::simple_graph::{all_connected, components, SimpleGraph};
 use crate::tiles::TileId;
-use derive_more::Constructor;
 use fixedbitset::FixedBitSet;
 use getset::CopyGetters;
-use itertools::Itertools;
 use nohash::{IntMap, IntSet};
-use std::cmp::Reverse;
-use std::collections::BinaryHeap;
 
 #[derive(Debug, Clone, CopyGetters, Default)]
 pub struct ActivePlant {
@@ -41,7 +35,7 @@ impl ActivePlant {
         unlinked_neighbor_ids.into_iter().for_each(|neighbor_id| {
             self.surface_map
                 .entry(neighbor_id)
-                .and_modify(|count| *count += 1)
+                .and_modify(|count| *count = count.checked_add(1).unwrap())
                 .or_insert(1);
         });
         self.energy_yield(grid)
@@ -92,43 +86,8 @@ impl ActivePlant {
         energy_yield / energy_usage
     }
 
-    pub fn choose_tiles(&self, grid: &Grid, genome: &ActiveGenome, points: usize) -> Vec<TileId> {
-        let mut k = points;
-
-        let mut heap_cost_1 = MaxHeap::with_size(k);
-        let mut heap_cost_2 = MaxHeap::with_size(k / 2);
-
-        self.surface_map
-            .keys()
-            .for_each(|&tile_id| match grid.entity(tile_id) {
-                Entity::Empty => {
-                    heap_cost_1.push_with(|| {
-                        ScoredTile::new(tile_id, genome.score(self.id, grid, tile_id), 1)
-                    });
-                }
-                Entity::Cell(plant_id) if plant_id == self.id => (),
-                Entity::Cell(_) => {
-                    heap_cost_2.push_with(|| {
-                        ScoredTile::new(tile_id, genome.score(self.id, grid, tile_id), 2)
-                    });
-                }
-            });
-
-        [heap_cost_1.into_vec(), heap_cost_2.into_vec()]
-            .concat()
-            .into_iter()
-            .sorted_unstable()
-            .rev()
-            .filter(|tile| {
-                if k >= tile.cost {
-                    k -= tile.cost;
-                    true
-                } else {
-                    false
-                }
-            })
-            .map(|tile| tile.id())
-            .collect()
+    pub fn available_tiles(&self) -> IntSet<TileId> {
+        self.surface_map.keys().copied().collect()
     }
 
     fn energy_usage(&self) -> usize {
@@ -157,76 +116,10 @@ impl ActivePlant {
                     if *count == 1 {
                         self.surface_map.remove(&unowned_tile_id);
                     } else {
-                        *count -= 1;
+                        *count = count.checked_sub(1).unwrap();
                     }
                 }
             });
         neighboring_cells
-    }
-}
-
-#[derive(Debug, Clone)]
-struct MaxHeap {
-    size: usize,
-    heap: BinaryHeap<Reverse<ScoredTile>>,
-}
-
-impl MaxHeap {
-    fn with_size(size: usize) -> Self {
-        MaxHeap {
-            size,
-            heap: BinaryHeap::with_capacity(size),
-        }
-    }
-
-    fn push_with(&mut self, mut f: impl FnMut() -> ScoredTile) {
-        if self.size == 0 {
-            return;
-        }
-
-        let scored_tile = f();
-        if self.heap.len() < self.size {
-            self.heap.push(Reverse(scored_tile));
-        } else if let Some(Reverse(min)) = self.heap.peek() {
-            if scored_tile > *min {
-                *self.heap.peek_mut().unwrap() = Reverse(scored_tile);
-            }
-        }
-    }
-
-    fn into_vec(self) -> Vec<ScoredTile> {
-        self.heap
-            .into_sorted_vec()
-            .into_iter()
-            .map(|Reverse(tile)| tile)
-            .collect()
-    }
-}
-
-#[derive(Debug, Copy, Clone, Constructor, CopyGetters)]
-struct ScoredTile {
-    #[get_copy = "pub"]
-    id: TileId,
-    score: f32,
-    cost: usize,
-}
-
-impl Eq for ScoredTile {}
-
-impl PartialEq for ScoredTile {
-    fn eq(&self, other: &Self) -> bool {
-        self.score == other.score
-    }
-}
-
-impl Ord for ScoredTile {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.score.partial_cmp(&other.score).unwrap()
-    }
-}
-
-impl PartialOrd for ScoredTile {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
     }
 }

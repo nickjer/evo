@@ -1,8 +1,10 @@
+use crate::entity::Entity;
 use crate::genome::Genome;
 use crate::grid::Grid;
 use crate::plants::PlantId;
 use crate::tiles::TileId;
 use getset::{CopyGetters, Getters};
+use nohash::IntSet;
 use serde::Serialize;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -34,17 +36,55 @@ impl ActiveGenome {
     }
 
     pub fn increment(&mut self) -> usize {
-        self.num_plants += 1;
+        self.num_plants = self.num_plants.checked_add(1).unwrap();
         self.num_plants
     }
 
     pub fn decrement(&mut self) -> usize {
-        self.num_plants -= 1;
+        self.num_plants = self.num_plants.checked_sub(1).unwrap();
         self.num_plants
     }
 
     pub fn set_max_yield(&mut self, max_yield: usize) {
         self.max_yield = std::cmp::max(self.max_yield, max_yield);
+    }
+
+    pub fn choose_tile(
+        &self,
+        grid: &Grid,
+        available_tiles: IntSet<TileId>,
+        plant_id: PlantId,
+        points: usize,
+    ) -> Option<TileId> {
+        if points == 0 {
+            return None;
+        }
+
+        let tile_scores: Vec<_> = available_tiles
+            .into_iter()
+            .filter_map(|tile_id| match grid.entity(tile_id) {
+                Entity::Empty => Some((tile_id, self.score(plant_id, grid, tile_id))),
+                Entity::Cell(tile_plant_id) if tile_plant_id == plant_id => None,
+                Entity::Cell(_) => {
+                    if points > 1 {
+                        Some((tile_id, self.score(plant_id, grid, tile_id)))
+                    } else {
+                        None
+                    }
+                }
+            })
+            .collect();
+
+        tile_scores
+            .into_iter()
+            .reduce(|(max_tile_id, max_score), (tile_id, score)| {
+                if score > max_score {
+                    (tile_id, score)
+                } else {
+                    (max_tile_id, max_score)
+                }
+            })
+            .map(|(tile_id, _)| tile_id)
     }
 
     pub fn score(&self, plant_id: PlantId, grid: &Grid, tile_id: TileId) -> f32 {

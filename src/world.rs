@@ -44,14 +44,24 @@ impl World {
         while tile_count < max_steps {
             let plant_ids = self.organisms.active_plants().to_owned();
             plant_ids.into_iter().rev().for_each(|plant_id| {
-                let points = self.organisms.points(plant_id, &self.grid);
+                let mut points = self.organisms.points(plant_id, &self.grid);
                 if points == 0 {
                     self.remove_plant(plant_id, rng);
                 } else {
-                    let chosen_tiles = self.organisms.choose_tiles(plant_id, &self.grid, points);
-                    chosen_tiles.into_iter().for_each(|tile_id| {
-                        self.replace_entity(tile_id, Entity::Cell(plant_id));
-                    });
+                    while let Some(tile_id) =
+                        self.organisms.choose_tile(plant_id, &self.grid, points)
+                    {
+                        let old_entity = self.replace_entity(tile_id, Entity::Cell(plant_id));
+                        if old_entity == Entity::Empty {
+                            points = points.checked_sub(1).unwrap();
+                        } else {
+                            points = points.checked_sub(2).unwrap();
+                        }
+
+                        if points == 0 {
+                            break;
+                        }
+                    }
                 }
             });
 

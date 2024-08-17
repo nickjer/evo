@@ -54,9 +54,9 @@ impl Grid {
     }
 
     fn touch(&mut self, tile_id: TileId) {
-        self.nonces[tile_id] += 1;
+        self.nonces[tile_id] = self.nonces[tile_id].checked_add(1).unwrap();
         self.blobs[tile_id].tile_ids().iter().for_each(|&tile_id| {
-            self.nonces[tile_id] += 1;
+            self.nonces[tile_id] = self.nonces[tile_id].checked_add(1).unwrap();
         })
     }
 

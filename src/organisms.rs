@@ -27,6 +27,10 @@ impl Organisms {
         self.plants[plant_id].as_ref().unwrap_living()
     }
 
+    pub fn genome(&self, genome_id: GenomeId) -> &ActiveGenome {
+        &self.genomes[genome_id].as_ref().unwrap_living()
+    }
+
     pub fn occupy(&mut self, plant_id: PlantId, tile_id: TileId, grid: &Grid) {
         let active_plant = self.plants[plant_id].as_mut().unwrap_living();
         let energy_yield = active_plant.occupy(tile_id, grid);
@@ -59,10 +63,7 @@ impl Organisms {
         genome_id: GenomeId,
         mut mutator: impl FnMut(f32) -> f32,
     ) -> PlantId {
-        let new_genome = self.genomes[genome_id]
-            .as_ref()
-            .unwrap_living()
-            .mutate(&mut mutator);
+        let new_genome = self.genome(genome_id).mutate(&mut mutator);
         let new_genome_id = self.add_genome(new_genome);
         self.add_plant(new_genome_id)
     }
@@ -88,11 +89,12 @@ impl Organisms {
         self.plant(plant_id).points(grid)
     }
 
-    pub fn choose_tiles(&self, plant_id: PlantId, grid: &Grid, points: usize) -> Vec<TileId> {
+    pub fn choose_tile(&self, plant_id: PlantId, grid: &Grid, points: usize) -> Option<TileId> {
         let active_plant = self.plant(plant_id);
+        let available_tiles = active_plant.available_tiles();
         let genome_id = active_plant.genome_id();
-        let active_genome = self.genomes[genome_id].as_ref().unwrap_living();
-        active_plant.choose_tiles(grid, active_genome, points)
+        let active_genome = self.genome(genome_id);
+        active_genome.choose_tile(grid, available_tiles, plant_id, points)
     }
 
     pub fn top_genomes(&mut self, n: usize) -> Vec<&Either<ActiveGenome, InactiveGenome>> {
@@ -119,7 +121,7 @@ impl Organisms {
     }
 
     fn remove_genome(&mut self, genome_id: GenomeId) {
-        let active_genome = self.genomes[genome_id].as_ref().unwrap_living();
+        let active_genome = self.genome(genome_id);
         let genome = active_genome.genome();
         let max_yield = active_genome.max_yield();
         self.genomes[genome_id] = Dead(InactiveGenome::new(*genome, max_yield));

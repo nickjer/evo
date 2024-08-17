@@ -1,5 +1,4 @@
-use crate::entity::Entity;
-use crate::plants::PlantId;
+use crate::entity::GreedyEntity;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Copy, Clone, Deserialize, Serialize)]
@@ -41,14 +40,15 @@ impl DoubletFn {
         }
     }
 
-    pub fn score(&self, plant_s: PlantId, entity_i: Entity, entity_j: Entity) -> f32 {
+    pub fn score(&self, entity_i: GreedyEntity, entity_j: GreedyEntity) -> f32 {
         match (entity_i, entity_j) {
-            (Entity::Empty, Entity::Empty) => self.doublet_ee,
-            (Entity::Empty, Entity::Cell(plant)) if plant == plant_s => self.doublet_es,
-            (Entity::Empty, Entity::Cell(_)) => self.doublet_eo,
-            (Entity::Cell(_), Entity::Empty) => self.doublet_oe,
-            (Entity::Cell(_), Entity::Cell(plant)) if plant == plant_s => self.doublet_os,
-            (Entity::Cell(_), Entity::Cell(_)) => self.doublet_oo,
+            (GreedyEntity::Empty, GreedyEntity::Empty) => self.doublet_ee,
+            (GreedyEntity::Empty, GreedyEntity::MyCell) => self.doublet_es,
+            (GreedyEntity::Empty, GreedyEntity::OtherCell) => self.doublet_eo,
+            (GreedyEntity::OtherCell, GreedyEntity::Empty) => self.doublet_oe,
+            (GreedyEntity::OtherCell, GreedyEntity::MyCell) => self.doublet_os,
+            (GreedyEntity::OtherCell, GreedyEntity::OtherCell) => self.doublet_oo,
+            (GreedyEntity::MyCell, _) => panic!("Invalid entity pair"),
         }
     }
 }

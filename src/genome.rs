@@ -1,4 +1,5 @@
 use crate::doublet_fn::DoubletFn;
+use crate::entity::GreedyEntity;
 use crate::grid::Grid;
 use crate::plants::PlantId;
 use crate::singlet_fn::SingletFn;
@@ -6,6 +7,7 @@ use crate::tiles::TileId;
 use crate::triplet_fn::TripletFn;
 use derive_more::Constructor;
 use getset::Getters;
+use nohash::IntMap;
 use serde::Serialize;
 
 #[derive(Debug, Copy, Clone, Constructor, Getters, Serialize)]
@@ -38,34 +40,27 @@ impl Genome {
     }
 
     pub fn score(&self, plant_id: PlantId, grid: &Grid, tile_id: TileId) -> f32 {
-        let entity_id_1 = grid.entity(tile_id);
+        let entity_1 = grid.entity(tile_id).into_greedy(plant_id);
         let mut score = 0.0;
-        score += self.singlet_fn().score(entity_id_1);
+        score += self.singlet_fn().score(entity_1);
         score += grid.doublets(tile_id).iter().fold(0.0, |sum, &doublet| {
             let tile_id_2 = doublet.j();
-            sum + self
-                .doublet_fn()
-                .score(plant_id, entity_id_1, grid.entity(tile_id_2))
+            let entity_2 = grid.entity(tile_id_2).into_greedy(plant_id);
+            sum + self.doublet_fn().score(entity_1, entity_2)
         });
         score += grid.triplets_l(tile_id).iter().fold(0.0, |sum, &triplet| {
             let tile_id_2 = triplet.j();
             let tile_id_3 = triplet.k();
-            sum + self.triplet_l_fn().score(
-                plant_id,
-                entity_id_1,
-                grid.entity(tile_id_2),
-                grid.entity(tile_id_3),
-            )
+            let entity_2 = grid.entity(tile_id_2).into_greedy(plant_id);
+            let entity_3 = grid.entity(tile_id_3).into_greedy(plant_id);
+            sum + self.triplet_l_fn().score(entity_1, entity_2, entity_3)
         });
         score += grid.triplets_i(tile_id).iter().fold(0.0, |sum, &triplet| {
             let tile_id_2 = triplet.j();
             let tile_id_3 = triplet.k();
-            sum + self.triplet_i_fn().score(
-                plant_id,
-                entity_id_1,
-                grid.entity(tile_id_2),
-                grid.entity(tile_id_3),
-            )
+            let entity_2 = grid.entity(tile_id_2).into_greedy(plant_id);
+            let entity_3 = grid.entity(tile_id_3).into_greedy(plant_id);
+            sum + self.triplet_i_fn().score(entity_1, entity_2, entity_3)
         });
         score
     }

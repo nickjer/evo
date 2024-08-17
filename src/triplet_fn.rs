@@ -1,5 +1,4 @@
-use crate::entity::Entity;
-use crate::plants::PlantId;
+use crate::entity::GreedyEntity;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Copy, Clone, Deserialize, Serialize)]
@@ -91,54 +90,52 @@ impl TripletFn {
 
     pub fn score(
         &self,
-        plant_s: PlantId,
-        entity_i: Entity,
-        entity_j: Entity,
-        entity_k: Entity,
+        entity_i: GreedyEntity,
+        entity_j: GreedyEntity,
+        entity_k: GreedyEntity,
     ) -> f32 {
         match (entity_i, entity_j, entity_k) {
-            (Entity::Empty, Entity::Empty, Entity::Empty) => self.triplet_eee,
-            (Entity::Empty, Entity::Empty, Entity::Cell(plant_2)) if plant_2 == plant_s => {
-                self.triplet_ees
-            }
-            (Entity::Empty, Entity::Empty, Entity::Cell(_)) => self.triplet_eeo,
-            (Entity::Empty, Entity::Cell(plant_1), Entity::Empty) if plant_1 == plant_s => {
-                self.triplet_ese
-            }
-            (Entity::Empty, Entity::Cell(plant_1), Entity::Cell(plant_2))
-                if plant_1 == plant_s && plant_2 == plant_s =>
-            {
-                self.triplet_ess
-            }
-            (Entity::Empty, Entity::Cell(plant_1), Entity::Cell(_)) if plant_1 == plant_s => {
+            (GreedyEntity::Empty, GreedyEntity::Empty, GreedyEntity::Empty) => self.triplet_eee,
+            (GreedyEntity::Empty, GreedyEntity::Empty, GreedyEntity::MyCell) => self.triplet_ees,
+            (GreedyEntity::Empty, GreedyEntity::Empty, GreedyEntity::OtherCell) => self.triplet_eeo,
+            (GreedyEntity::Empty, GreedyEntity::MyCell, GreedyEntity::Empty) => self.triplet_ese,
+            (GreedyEntity::Empty, GreedyEntity::MyCell, GreedyEntity::MyCell) => self.triplet_ess,
+            (GreedyEntity::Empty, GreedyEntity::MyCell, GreedyEntity::OtherCell) => {
                 self.triplet_eso
             }
-            (Entity::Empty, Entity::Cell(_), Entity::Empty) => self.triplet_eoe,
-            (Entity::Empty, Entity::Cell(_), Entity::Cell(plant_2)) if plant_2 == plant_s => {
+            (GreedyEntity::Empty, GreedyEntity::OtherCell, GreedyEntity::Empty) => self.triplet_eoe,
+            (GreedyEntity::Empty, GreedyEntity::OtherCell, GreedyEntity::MyCell) => {
                 self.triplet_eos
             }
-            (Entity::Empty, Entity::Cell(_), Entity::Cell(_)) => self.triplet_eoo,
-            (Entity::Cell(_), Entity::Empty, Entity::Empty) => self.triplet_oee,
-            (Entity::Cell(_), Entity::Empty, Entity::Cell(plant_2)) if plant_2 == plant_s => {
+            (GreedyEntity::Empty, GreedyEntity::OtherCell, GreedyEntity::OtherCell) => {
+                self.triplet_eoo
+            }
+            (GreedyEntity::OtherCell, GreedyEntity::Empty, GreedyEntity::Empty) => self.triplet_oee,
+            (GreedyEntity::OtherCell, GreedyEntity::Empty, GreedyEntity::MyCell) => {
                 self.triplet_oes
             }
-            (Entity::Cell(_), Entity::Empty, Entity::Cell(_)) => self.triplet_oeo,
-            (Entity::Cell(_), Entity::Cell(plant_1), Entity::Empty) if plant_1 == plant_s => {
+            (GreedyEntity::OtherCell, GreedyEntity::Empty, GreedyEntity::OtherCell) => {
+                self.triplet_oeo
+            }
+            (GreedyEntity::OtherCell, GreedyEntity::MyCell, GreedyEntity::Empty) => {
                 self.triplet_ose
             }
-            (Entity::Cell(_), Entity::Cell(plant_1), Entity::Cell(plant_2))
-                if plant_1 == plant_s && plant_2 == plant_s =>
-            {
+            (GreedyEntity::OtherCell, GreedyEntity::MyCell, GreedyEntity::MyCell) => {
                 self.triplet_oss
             }
-            (Entity::Cell(_), Entity::Cell(plant_1), Entity::Cell(_)) if plant_1 == plant_s => {
+            (GreedyEntity::OtherCell, GreedyEntity::MyCell, GreedyEntity::OtherCell) => {
                 self.triplet_oso
             }
-            (Entity::Cell(_), Entity::Cell(_), Entity::Empty) => self.triplet_ooe,
-            (Entity::Cell(_), Entity::Cell(_), Entity::Cell(plant_2)) if plant_2 == plant_s => {
+            (GreedyEntity::OtherCell, GreedyEntity::OtherCell, GreedyEntity::Empty) => {
+                self.triplet_ooe
+            }
+            (GreedyEntity::OtherCell, GreedyEntity::OtherCell, GreedyEntity::MyCell) => {
                 self.triplet_oos
             }
-            (Entity::Cell(_), Entity::Cell(_), Entity::Cell(_)) => self.triplet_ooo,
+            (GreedyEntity::OtherCell, GreedyEntity::OtherCell, GreedyEntity::OtherCell) => {
+                self.triplet_ooo
+            }
+            (GreedyEntity::MyCell, _, _) => panic!("Invalid entity triplet"),
         }
     }
 }

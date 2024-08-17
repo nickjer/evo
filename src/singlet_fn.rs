@@ -1,4 +1,4 @@
-use crate::entity::Entity;
+use crate::entity::GreedyEntity;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Copy, Clone, Deserialize, Serialize)]
@@ -24,10 +24,11 @@ impl SingletFn {
         }
     }
 
-    pub fn score(&self, entity_i: Entity) -> f32 {
+    pub fn score(&self, entity_i: GreedyEntity) -> f32 {
         match entity_i {
-            Entity::Empty => self.singlet_e,
-            Entity::Cell(_) => self.singlet_o,
+            GreedyEntity::Empty => self.singlet_e,
+            GreedyEntity::OtherCell => self.singlet_o,
+            _ => panic!("Invalid entity"),
         }
     }
 }

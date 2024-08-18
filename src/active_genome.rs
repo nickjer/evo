@@ -1,4 +1,3 @@
-use crate::entity::Entity;
 use crate::genome::Genome;
 use crate::grid::Grid;
 use crate::plants::PlantId;
@@ -20,7 +19,7 @@ pub struct ActiveGenome {
     #[getset(get_copy = "pub")]
     max_yield: usize,
     #[serde(skip)]
-    score_map: RefCell<HashMap<TileId, (usize, f32)>>,
+    score_map: RefCell<HashMap<(PlantId, TileId, usize), (usize, Option<f32>)>>,
 }
 
 impl ActiveGenome {
@@ -66,17 +65,7 @@ impl ActiveGenome {
         let mut count_dupes: usize = 1;
         available_tiles
             .into_iter()
-            .filter_map(|tile_id| match grid.entity(tile_id) {
-                Entity::Empty => Some((tile_id, self.score(plant_id, grid, tile_id))),
-                Entity::Cell(tile_plant_id) if tile_plant_id == plant_id => None,
-                Entity::Cell(_) => {
-                    if points > 1 {
-                        Some((tile_id, self.score(plant_id, grid, tile_id)))
-                    } else {
-                        None
-                    }
-                }
-            })
+            .filter_map(|tile_id| Some(tile_id).zip(self.score(plant_id, grid, tile_id, points)))
             .reduce(|(max_tile_id, max_score), (tile_id, score)| {
                 if ulps_eq!(max_score, score, epsilon = 1.0e-6, max_ulps = 10) {
                     count_dupes += 1;
@@ -96,17 +85,23 @@ impl ActiveGenome {
             .map(|(tile_id, _)| tile_id)
     }
 
-    pub fn score(&self, plant_id: PlantId, grid: &Grid, tile_id: TileId) -> f32 {
+    pub fn score(
+        &self,
+        plant_id: PlantId,
+        grid: &Grid,
+        tile_id: TileId,
+        points: usize,
+    ) -> Option<f32> {
         let nonce = grid.nonce(tile_id);
         let mut score_map = self.score_map.borrow_mut();
-        if let Some(&(cached_nonce, cached_score)) = score_map.get(&tile_id) {
+        if let Some(&(cached_nonce, cached_score)) = score_map.get(&(plant_id, tile_id, points)) {
             if cached_nonce == nonce {
                 return cached_score;
             }
         }
 
-        let score = self.genome.score(plant_id, grid, tile_id);
-        score_map.insert(tile_id, (nonce, score));
+        let score = self.genome.score(plant_id, grid, tile_id, points);
+        score_map.insert((plant_id, tile_id, points), (nonce, score));
         score
     }
 }

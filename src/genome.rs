@@ -7,7 +7,6 @@ use crate::tiles::TileId;
 use crate::triplet_fn::TripletFn;
 use derive_more::Constructor;
 use getset::Getters;
-use nohash::IntMap;
 use serde::Serialize;
 
 #[derive(Debug, Copy, Clone, Constructor, Getters, Serialize)]
@@ -39,8 +38,24 @@ impl Genome {
         )
     }
 
-    pub fn score(&self, plant_id: PlantId, grid: &Grid, tile_id: TileId) -> f32 {
+    pub fn score(
+        &self,
+        plant_id: PlantId,
+        grid: &Grid,
+        tile_id: TileId,
+        points: usize,
+    ) -> Option<f32> {
         let entity_1 = grid.entity(tile_id).into_greedy(plant_id);
+        match entity_1 {
+            GreedyEntity::Empty => {}
+            GreedyEntity::MyCell => return None,
+            GreedyEntity::OtherCell => {
+                if points <= 1 {
+                    return None;
+                }
+            }
+        }
+
         let mut score = 0.0;
         score += self.singlet_fn().score(entity_1);
         score += grid.doublets(tile_id).iter().fold(0.0, |sum, &doublet| {
@@ -62,6 +77,6 @@ impl Genome {
             let entity_3 = grid.entity(tile_id_3).into_greedy(plant_id);
             sum + self.triplet_i_fn().score(entity_1, entity_2, entity_3)
         });
-        score
+        Some(score)
     }
 }

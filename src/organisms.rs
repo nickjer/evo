@@ -29,7 +29,7 @@ impl Organisms {
     }
 
     pub fn genome(&self, genome_id: GenomeId) -> &ActiveGenome {
-        &self.genomes[genome_id].as_ref().unwrap_living()
+        self.genomes[genome_id].as_ref().unwrap_living()
     }
 
     pub fn occupy(&mut self, plant_id: PlantId, tile_id: TileId, grid: &Grid) {

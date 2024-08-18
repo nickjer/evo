@@ -5,6 +5,7 @@ authors = ["Jeremy Nicklas <jeremywnicklas@gmail.com>"]
 edition = "2021"
 
 [dependencies]
+ahash = "0.8"
 anyhow = "1.0"
 approx = "0.5"
 config = "0.14"

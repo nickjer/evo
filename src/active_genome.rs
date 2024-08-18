@@ -3,12 +3,12 @@ use crate::grid::Grid;
 use crate::plants::PlantId;
 use crate::rand::Rng;
 use crate::tiles::TileId;
+use ahash::AHashMap;
 use approx::ulps_eq;
 use getset::{CopyGetters, Getters};
 use nohash::IntSet;
 use serde::Serialize;
 use std::cell::RefCell;
-use std::collections::HashMap;
 
 #[derive(Debug, Clone, CopyGetters, Getters, Serialize)]
 pub struct ActiveGenome {
@@ -19,7 +19,7 @@ pub struct ActiveGenome {
     #[getset(get_copy = "pub")]
     max_yield: usize,
     #[serde(skip)]
-    score_map: RefCell<HashMap<(PlantId, TileId, usize), (usize, Option<f32>)>>,
+    score_map: RefCell<AHashMap<(PlantId, TileId, usize), (usize, Option<f32>)>>,
 }
 
 impl ActiveGenome {
@@ -28,7 +28,7 @@ impl ActiveGenome {
             genome,
             num_plants: 0,
             max_yield: 0,
-            score_map: RefCell::new(HashMap::default()),
+            score_map: RefCell::new(AHashMap::new()),
         }
     }
 

@@ -99,6 +99,7 @@ fn main() -> Result<()> {
 
         let genome = Genome::new(singlet_fn, doublet_fn, triplet_l_fn, triplet_i_fn);
         let position = Position::new(rng.uniform(x_size), rng.uniform(y_size));
+        println!("Adding random plant at {:?}", position);
         world.add_plant(genome, position);
     }
     let max_steps = config.max_steps;

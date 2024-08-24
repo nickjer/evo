@@ -13,6 +13,7 @@ use std::cell::RefCell;
 
 #[derive(Debug, Clone, CopyGetters, Getters, Serialize)]
 pub struct ActiveGenome {
+    id: GenomeId,
     #[serde(flatten)]
     #[getset(get = "pub")]
     genome: Genome,
@@ -28,8 +29,14 @@ pub struct ActiveGenome {
 }
 
 impl ActiveGenome {
-    pub fn new(genome: Genome, parent_genome_id: Option<GenomeId>, created_at: usize) -> Self {
+    pub fn new(
+        id: GenomeId,
+        genome: Genome,
+        parent_genome_id: Option<GenomeId>,
+        created_at: usize,
+    ) -> Self {
         Self {
+            id,
             genome,
             num_plants: 0,
             max_yield: 0,

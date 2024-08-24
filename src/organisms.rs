@@ -86,7 +86,7 @@ impl Organisms {
         round: usize,
     ) -> GenomeId {
         let id = GenomeId::from(self.genomes.len());
-        let active_genome = ActiveGenome::new(genome, parent_genome_id, round);
+        let active_genome = ActiveGenome::new(id, genome, parent_genome_id, round);
         self.genomes.push(Living(active_genome));
         self.active_genomes.push(id);
         id
@@ -136,6 +136,7 @@ impl Organisms {
         let created_at = active_genome.created_at();
         let parent_genome_id = active_genome.parent_genome_id();
         self.genomes[genome_id] = Dead(InactiveGenome::new(
+            genome_id,
             *genome,
             max_yield,
             created_at,

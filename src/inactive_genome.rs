@@ -6,6 +6,7 @@ use serde::Serialize;
 
 #[derive(Debug, Clone, Constructor, CopyGetters, Serialize)]
 pub struct InactiveGenome {
+    id: GenomeId,
     #[serde(flatten)]
     #[getset(get = "pub")]
     genome: Genome,

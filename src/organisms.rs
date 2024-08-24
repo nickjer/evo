@@ -62,25 +62,26 @@ impl Organisms {
     pub fn add_mutated_plant(
         &mut self,
         genome_id: GenomeId,
+        round: usize,
         mut mutator: impl FnMut(f32) -> f32,
     ) -> PlantId {
         let new_genome = self.genome(genome_id).mutate(&mut mutator);
-        let new_genome_id = self.add_genome(new_genome);
+        let new_genome_id = self.add_genome(new_genome, round);
         self.add_plant(new_genome_id)
     }
 
-    pub fn remove_plant(&mut self, plant_id: PlantId) {
+    pub fn remove_plant(&mut self, plant_id: PlantId, round: usize) {
         let active_plant = self.plant(plant_id);
         let genome_id = active_plant.genome_id();
-        self.decrement_genome(genome_id);
+        self.decrement_genome(genome_id, round);
 
         self.active_plants.retain(|&id| id != plant_id);
         self.plants[plant_id] = Dead(InactivePlant::new(plant_id, genome_id));
     }
 
-    pub fn add_genome(&mut self, genome: Genome) -> GenomeId {
+    pub fn add_genome(&mut self, genome: Genome, round: usize) -> GenomeId {
         let id = GenomeId::from(self.genomes.len());
-        let active_genome = ActiveGenome::new(genome);
+        let active_genome = ActiveGenome::new(genome, round);
         self.genomes.push(Living(active_genome));
         self.active_genomes.push(id);
         id
@@ -114,20 +115,21 @@ impl Organisms {
         self.genomes[genome_id].as_mut().unwrap_living().increment();
     }
 
-    fn decrement_genome(&mut self, genome_id: GenomeId) {
+    fn decrement_genome(&mut self, genome_id: GenomeId, round: usize) {
         let genome = self.genomes[genome_id].as_mut().unwrap_living();
         let num_plants = genome.decrement();
 
         if num_plants == 0 {
-            self.remove_genome(genome_id);
+            self.remove_genome(genome_id, round);
         }
     }
 
-    fn remove_genome(&mut self, genome_id: GenomeId) {
+    fn remove_genome(&mut self, genome_id: GenomeId, round: usize) {
         let active_genome = self.genome(genome_id);
         let genome = active_genome.genome();
         let max_yield = active_genome.max_yield();
-        self.genomes[genome_id] = Dead(InactiveGenome::new(*genome, max_yield));
+        let created_at = active_genome.created_at();
+        self.genomes[genome_id] = Dead(InactiveGenome::new(*genome, max_yield, created_at, round));
         self.active_genomes.retain(|&id| id != genome_id);
     }
 }

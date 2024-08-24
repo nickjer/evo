@@ -30,7 +30,7 @@ impl World {
         }
     }
 
-    pub fn run(&mut self, rng: &mut Rng, max_steps: usize, snapshot_interval: usize) {
+    pub fn run(&mut self, rng: &mut Rng, max_rounds: usize, snapshot_interval: usize) {
         let file = std::fs::File::create("data.js").unwrap();
         let mut file = std::io::LineWriter::new(file);
 
@@ -41,7 +41,7 @@ impl World {
         Self::write_snapshot(&mut file, self.tile_snapshot());
 
         let mut tile_count = 0;
-        while tile_count < max_steps {
+        while tile_count < max_rounds {
             let plant_ids = self.organisms.active_plants().to_owned();
             plant_ids.into_iter().rev().for_each(|plant_id| {
                 let plant = self.organisms.plant(plant_id);
@@ -49,7 +49,7 @@ impl World {
                     energy_points if energy_points > 0 => {
                         self.grow_plant(plant_id, energy_points, rng)
                     }
-                    _ => self.remove_plant(plant_id, rng),
+                    _ => self.remove_plant(plant_id, tile_count, rng),
                 }
             });
 
@@ -64,7 +64,7 @@ impl World {
             }
 
             if tile_count % snapshot_interval == 0 {
-                println!("Step: {}", tile_count);
+                println!("round: {}", tile_count);
                 Self::write_snapshot(&mut file, self.tile_snapshot());
             }
             tile_count += 1;
@@ -93,7 +93,7 @@ impl World {
         old_entity
     }
 
-    fn remove_plant(&mut self, plant_id: PlantId, rng: &mut Rng) {
+    fn remove_plant(&mut self, plant_id: PlantId, round: usize, rng: &mut Rng) {
         let plant = self.organisms.plant(plant_id);
         let genome_id = plant.genome_id();
         let old_tiles = plant.cell_tiles();
@@ -107,14 +107,14 @@ impl World {
                 // Should create a new genome?
                 let plant_id = if rng.sample() < self.mutation_rate {
                     let mutator = |value| value + rng.norm() * 0.1;
-                    self.organisms.add_mutated_plant(genome_id, mutator)
+                    self.organisms.add_mutated_plant(genome_id, round, mutator)
                 } else {
                     self.organisms.add_plant(genome_id)
                 };
                 self.replace_entity(tile_id, Entity::Cell(plant_id));
             }
         }
-        self.organisms.remove_plant(plant_id);
+        self.organisms.remove_plant(plant_id, round);
     }
 
     fn grow_plant(&mut self, plant_id: PlantId, energy_points: usize, rng: &mut Rng) {
@@ -144,7 +144,7 @@ impl World {
     }
 
     pub fn add_genome(&mut self, genome: Genome) -> GenomeId {
-        self.organisms.add_genome(genome)
+        self.organisms.add_genome(genome, 0)
     }
 
     pub fn add_plant(&mut self, genome_id: GenomeId, tile_id: TileId) {

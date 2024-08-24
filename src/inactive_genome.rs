@@ -10,4 +10,6 @@ pub struct InactiveGenome {
     genome: Genome,
     #[getset(get_copy = "pub")]
     max_yield: usize,
+    created_at: usize,
+    died_at: usize,
 }

@@ -18,16 +18,19 @@ pub struct ActiveGenome {
     num_plants: usize,
     #[getset(get_copy = "pub")]
     max_yield: usize,
+    #[getset(get_copy = "pub")]
+    created_at: usize,
     #[serde(skip)]
     score_map: RefCell<AHashMap<(PlantId, TileId, usize), (usize, Option<f32>)>>,
 }
 
 impl ActiveGenome {
-    pub fn new(genome: Genome) -> Self {
+    pub fn new(genome: Genome, created_at: usize) -> Self {
         Self {
             genome,
             num_plants: 0,
             max_yield: 0,
+            created_at,
             score_map: RefCell::new(AHashMap::new()),
         }
     }

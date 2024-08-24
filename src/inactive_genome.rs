@@ -1,4 +1,5 @@
 use crate::genome::Genome;
+use crate::genomes::GenomeId;
 use derive_more::Constructor;
 use getset::CopyGetters;
 use serde::Serialize;
@@ -12,4 +13,5 @@ pub struct InactiveGenome {
     max_yield: usize,
     created_at: usize,
     died_at: usize,
+    parent_genome_id: Option<GenomeId>,
 }

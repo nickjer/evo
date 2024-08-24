@@ -1,4 +1,5 @@
 use crate::genome::Genome;
+use crate::genomes::GenomeId;
 use crate::grid::Grid;
 use crate::plants::PlantId;
 use crate::rand::Rng;
@@ -20,17 +21,20 @@ pub struct ActiveGenome {
     max_yield: usize,
     #[getset(get_copy = "pub")]
     created_at: usize,
+    #[getset(get_copy = "pub")]
+    parent_genome_id: Option<GenomeId>,
     #[serde(skip)]
     score_map: RefCell<AHashMap<(PlantId, TileId, usize), (usize, Option<f32>)>>,
 }
 
 impl ActiveGenome {
-    pub fn new(genome: Genome, created_at: usize) -> Self {
+    pub fn new(genome: Genome, parent_genome_id: Option<GenomeId>, created_at: usize) -> Self {
         Self {
             genome,
             num_plants: 0,
             max_yield: 0,
             created_at,
+            parent_genome_id,
             score_map: RefCell::new(AHashMap::new()),
         }
     }

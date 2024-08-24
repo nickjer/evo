@@ -66,7 +66,7 @@ impl Organisms {
         mut mutator: impl FnMut(f32) -> f32,
     ) -> PlantId {
         let new_genome = self.genome(genome_id).mutate(&mut mutator);
-        let new_genome_id = self.add_genome(new_genome, round);
+        let new_genome_id = self.add_genome(new_genome, Some(genome_id), round);
         self.add_plant(new_genome_id)
     }
 
@@ -79,9 +79,14 @@ impl Organisms {
         self.plants[plant_id] = Dead(InactivePlant::new(plant_id, genome_id));
     }
 
-    pub fn add_genome(&mut self, genome: Genome, round: usize) -> GenomeId {
+    pub fn add_genome(
+        &mut self,
+        genome: Genome,
+        parent_genome_id: Option<GenomeId>,
+        round: usize,
+    ) -> GenomeId {
         let id = GenomeId::from(self.genomes.len());
-        let active_genome = ActiveGenome::new(genome, round);
+        let active_genome = ActiveGenome::new(genome, parent_genome_id, round);
         self.genomes.push(Living(active_genome));
         self.active_genomes.push(id);
         id
@@ -129,7 +134,14 @@ impl Organisms {
         let genome = active_genome.genome();
         let max_yield = active_genome.max_yield();
         let created_at = active_genome.created_at();
-        self.genomes[genome_id] = Dead(InactiveGenome::new(*genome, max_yield, created_at, round));
+        let parent_genome_id = active_genome.parent_genome_id();
+        self.genomes[genome_id] = Dead(InactiveGenome::new(
+            *genome,
+            max_yield,
+            created_at,
+            round,
+            parent_genome_id,
+        ));
         self.active_genomes.retain(|&id| id != genome_id);
     }
 }

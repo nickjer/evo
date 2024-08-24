@@ -2,9 +2,22 @@ use crate::active_genome::ActiveGenome;
 use crate::either::Either;
 use crate::inactive_genome::InactiveGenome;
 use derive_more::{Display, From, Into, IntoIterator};
+use serde::Serialize;
 
 #[derive(
-    Debug, Copy, Clone, Default, Display, Hash, PartialEq, Eq, PartialOrd, Ord, From, Into,
+    Debug,
+    Copy,
+    Clone,
+    Default,
+    Display,
+    Hash,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    From,
+    Into,
+    Serialize,
 )]
 pub struct GenomeId(usize);
 

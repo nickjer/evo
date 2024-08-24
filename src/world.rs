@@ -144,7 +144,7 @@ impl World {
     }
 
     pub fn add_genome(&mut self, genome: Genome) -> GenomeId {
-        self.organisms.add_genome(genome, 0)
+        self.organisms.add_genome(genome, None, 0)
     }
 
     pub fn add_plant(&mut self, genome_id: GenomeId, tile_id: TileId) {

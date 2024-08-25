@@ -17,11 +17,33 @@ impl SingletFn {
         }
     }
 
+    pub fn translate(self, amount: f32) -> Self {
+        Self {
+            singlet_e: self.singlet_e + amount,
+            singlet_o: self.singlet_o + amount,
+        }
+    }
+
+    pub fn scale(self, amount: f32) -> Self {
+        Self {
+            singlet_e: self.singlet_e * amount,
+            singlet_o: self.singlet_o * amount,
+        }
+    }
+
     pub fn mutate(&self, mut mutator: impl FnMut(f32) -> f32) -> Self {
         Self {
             singlet_e: mutator(self.singlet_e),
             singlet_o: mutator(self.singlet_o),
         }
+    }
+
+    pub fn min(&self) -> f32 {
+        self.singlet_e.min(self.singlet_o)
+    }
+
+    pub fn max(&self) -> f32 {
+        self.singlet_e.max(self.singlet_o)
     }
 
     pub fn score(&self, entity_i: GreedyEntity) -> f32 {

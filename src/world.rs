@@ -106,7 +106,7 @@ impl World {
             if rng.sample() < self.seed_rate {
                 // Should create a new genome?
                 let plant_id = if rng.sample() < self.mutation_rate {
-                    let mutator = |value| value + rng.norm() * 0.1;
+                    let mutator = |value| value + rng.norm() * 0.01;
                     self.organisms.add_mutated_plant(genome_id, round, mutator)
                 } else {
                     self.organisms.add_plant(genome_id)

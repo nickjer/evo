@@ -29,6 +29,28 @@ impl DoubletFn {
         }
     }
 
+    pub fn translate(self, amount: f32) -> Self {
+        Self {
+            doublet_ee: self.doublet_ee + amount,
+            doublet_es: self.doublet_es + amount,
+            doublet_eo: self.doublet_eo + amount,
+            doublet_oe: self.doublet_oe + amount,
+            doublet_os: self.doublet_os + amount,
+            doublet_oo: self.doublet_oo + amount,
+        }
+    }
+
+    pub fn scale(self, amount: f32) -> Self {
+        Self {
+            doublet_ee: self.doublet_ee * amount,
+            doublet_es: self.doublet_es * amount,
+            doublet_eo: self.doublet_eo * amount,
+            doublet_oe: self.doublet_oe * amount,
+            doublet_os: self.doublet_os * amount,
+            doublet_oo: self.doublet_oo * amount,
+        }
+    }
+
     pub fn mutate(&self, mut mutator: impl FnMut(f32) -> f32) -> Self {
         Self {
             doublet_ee: mutator(self.doublet_ee),
@@ -38,6 +60,24 @@ impl DoubletFn {
             doublet_os: mutator(self.doublet_os),
             doublet_oo: mutator(self.doublet_oo),
         }
+    }
+
+    pub fn min(&self) -> f32 {
+        self.doublet_ee
+            .min(self.doublet_es)
+            .min(self.doublet_eo)
+            .min(self.doublet_oe)
+            .min(self.doublet_os)
+            .min(self.doublet_oo)
+    }
+
+    pub fn max(&self) -> f32 {
+        self.doublet_ee
+            .max(self.doublet_es)
+            .max(self.doublet_eo)
+            .max(self.doublet_oe)
+            .max(self.doublet_os)
+            .max(self.doublet_oo)
     }
 
     pub fn score(&self, entity_i: GreedyEntity, entity_j: GreedyEntity) -> f32 {

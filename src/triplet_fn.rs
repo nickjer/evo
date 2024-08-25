@@ -65,6 +65,52 @@ impl TripletFn {
         }
     }
 
+    pub fn translate(self, amount: f32) -> Self {
+        Self {
+            triplet_eee: self.triplet_eee + amount,
+            triplet_ees: self.triplet_ees + amount,
+            triplet_eeo: self.triplet_eeo + amount,
+            triplet_ese: self.triplet_ese + amount,
+            triplet_ess: self.triplet_ess + amount,
+            triplet_eso: self.triplet_eso + amount,
+            triplet_eoe: self.triplet_eoe + amount,
+            triplet_eos: self.triplet_eos + amount,
+            triplet_eoo: self.triplet_eoo + amount,
+            triplet_oee: self.triplet_oee + amount,
+            triplet_oes: self.triplet_oes + amount,
+            triplet_oeo: self.triplet_oeo + amount,
+            triplet_ose: self.triplet_ose + amount,
+            triplet_oss: self.triplet_oss + amount,
+            triplet_oso: self.triplet_oso + amount,
+            triplet_ooe: self.triplet_ooe + amount,
+            triplet_oos: self.triplet_oos + amount,
+            triplet_ooo: self.triplet_ooo + amount,
+        }
+    }
+
+    pub fn scale(self, amount: f32) -> Self {
+        Self {
+            triplet_eee: self.triplet_eee * amount,
+            triplet_ees: self.triplet_ees * amount,
+            triplet_eeo: self.triplet_eeo * amount,
+            triplet_ese: self.triplet_ese * amount,
+            triplet_ess: self.triplet_ess * amount,
+            triplet_eso: self.triplet_eso * amount,
+            triplet_eoe: self.triplet_eoe * amount,
+            triplet_eos: self.triplet_eos * amount,
+            triplet_eoo: self.triplet_eoo * amount,
+            triplet_oee: self.triplet_oee * amount,
+            triplet_oes: self.triplet_oes * amount,
+            triplet_oeo: self.triplet_oeo * amount,
+            triplet_ose: self.triplet_ose * amount,
+            triplet_oss: self.triplet_oss * amount,
+            triplet_oso: self.triplet_oso * amount,
+            triplet_ooe: self.triplet_ooe * amount,
+            triplet_oos: self.triplet_oos * amount,
+            triplet_ooo: self.triplet_ooo * amount,
+        }
+    }
+
     pub fn mutate(&self, mut mutator: impl FnMut(f32) -> f32) -> Self {
         Self {
             triplet_eee: mutator(self.triplet_eee),
@@ -87,6 +133,49 @@ impl TripletFn {
             triplet_ooo: mutator(self.triplet_ooo),
         }
     }
+
+    pub fn min(&self) -> f32 {
+        self.triplet_eee
+            .min(self.triplet_ees)
+            .min(self.triplet_eeo)
+            .min(self.triplet_ese)
+            .min(self.triplet_ess)
+            .min(self.triplet_eso)
+            .min(self.triplet_eoe)
+            .min(self.triplet_eos)
+            .min(self.triplet_eoo)
+            .min(self.triplet_oee)
+            .min(self.triplet_oes)
+            .min(self.triplet_oeo)
+            .min(self.triplet_ose)
+            .min(self.triplet_oss)
+            .min(self.triplet_oso)
+            .min(self.triplet_ooe)
+            .min(self.triplet_oos)
+            .min(self.triplet_ooo)
+    }
+
+    pub fn max(&self) -> f32 {
+        self.triplet_eee
+            .max(self.triplet_ees)
+            .max(self.triplet_eeo)
+            .max(self.triplet_ese)
+            .max(self.triplet_ess)
+            .max(self.triplet_eso)
+            .max(self.triplet_eoe)
+            .max(self.triplet_eos)
+            .max(self.triplet_eoo)
+            .max(self.triplet_oee)
+            .max(self.triplet_oes)
+            .max(self.triplet_oeo)
+            .max(self.triplet_ose)
+            .max(self.triplet_oss)
+            .max(self.triplet_oso)
+            .max(self.triplet_ooe)
+            .max(self.triplet_oos)
+            .max(self.triplet_ooo)
+    }
+
 
     pub fn score(
         &self,

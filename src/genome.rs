@@ -5,11 +5,10 @@ use crate::plants::PlantId;
 use crate::singlet_fn::SingletFn;
 use crate::tiles::TileId;
 use crate::triplet_fn::TripletFn;
-use derive_more::Constructor;
 use getset::Getters;
 use serde::Serialize;
 
-#[derive(Debug, Copy, Clone, Constructor, Getters, Serialize)]
+#[derive(Debug, Copy, Clone, Getters, Serialize)]
 pub struct Genome {
     #[serde(rename = "singlet")]
     #[getset(get = "pub")]
@@ -29,6 +28,31 @@ pub struct Genome {
 }
 
 impl Genome {
+    pub fn new(
+        singlet_fn: SingletFn,
+        doublet_fn: DoubletFn,
+        triplet_l_fn: TripletFn,
+        triplet_i_fn: TripletFn,
+    ) -> Self {
+        let min = singlet_fn
+            .min()
+            .min(doublet_fn.min())
+            .min(triplet_l_fn.min())
+            .min(triplet_i_fn.min());
+        let max = singlet_fn
+            .max()
+            .max(doublet_fn.max())
+            .max(triplet_l_fn.max())
+            .max(triplet_i_fn.max());
+        let scale = 1.0 / (max - min);
+        Self {
+            singlet_fn: singlet_fn.translate(-min).scale(scale),
+            doublet_fn: doublet_fn.translate(-min).scale(scale),
+            triplet_l_fn: triplet_l_fn.translate(-min).scale(scale),
+            triplet_i_fn: triplet_i_fn.translate(-min).scale(scale),
+        }
+    }
+
     pub fn mutate(&self, mut mutator: impl FnMut(f32) -> f32) -> Self {
         Self::new(
             self.singlet_fn.mutate(&mut mutator),

@@ -176,7 +176,6 @@ impl TripletFn {
             .max(self.triplet_ooo)
     }
 
-
     pub fn score(
         &self,
         entity_i: GreedyEntity,

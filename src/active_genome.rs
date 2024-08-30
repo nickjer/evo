@@ -5,7 +5,6 @@ use crate::plants::PlantId;
 use crate::rand::Rng;
 use crate::tiles::TileId;
 use ahash::AHashMap;
-use approx::ulps_eq;
 use getset::{CopyGetters, Getters};
 use nohash::IntSet;
 use serde::Serialize;
@@ -76,26 +75,30 @@ impl ActiveGenome {
             return None;
         }
 
-        let mut count_dupes: usize = 1;
-        available_tiles
+        let scores = available_tiles
             .into_iter()
             .filter_map(|tile_id| Some(tile_id).zip(self.score(plant_id, grid, tile_id, points)))
-            .reduce(|(max_tile_id, max_score), (tile_id, score)| {
-                if ulps_eq!(max_score, score, epsilon = 1.0e-6, max_ulps = 10) {
-                    count_dupes += 1;
-                    let rate = 1.0 / count_dupes as f32;
-                    if rng.sample() < rate {
-                        (tile_id, score)
-                    } else {
-                        (max_tile_id, max_score)
-                    }
-                } else if score > max_score {
-                    count_dupes = 0;
-                    (tile_id, score)
-                } else {
-                    (max_tile_id, max_score)
-                }
+            .collect::<Vec<_>>();
+
+        let max_score = scores
+            .iter()
+            .map(|(_, score)| *score)
+            .fold(f32::NEG_INFINITY, f32::max);
+
+        let mut total_cumulative_score = 0.0;
+        let cumulative_scores = scores
+            .into_iter()
+            .map(|(tile_id, score)| {
+                let score_weight = self.genome.score_weight();
+                total_cumulative_score += (score_weight * (score - max_score)).exp();
+                (tile_id, total_cumulative_score)
             })
+            .collect::<Vec<_>>();
+
+        let random_score = rng.sample() * total_cumulative_score;
+        cumulative_scores
+            .into_iter()
+            .find(|&(_, cumulative_score)| random_score < cumulative_score)
             .map(|(tile_id, _)| tile_id)
     }
 

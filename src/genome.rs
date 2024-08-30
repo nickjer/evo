@@ -10,6 +10,9 @@ use serde::Serialize;
 
 #[derive(Debug, Copy, Clone, Getters, Serialize)]
 pub struct Genome {
+    #[getset(get = "pub")]
+    score_weight: f32,
+
     #[serde(rename = "singlet")]
     #[getset(get = "pub")]
     singlet_fn: SingletFn,
@@ -29,6 +32,7 @@ pub struct Genome {
 
 impl Genome {
     pub fn new(
+        score_weight: f32,
         singlet_fn: SingletFn,
         doublet_fn: DoubletFn,
         triplet_l_fn: TripletFn,
@@ -46,6 +50,7 @@ impl Genome {
             .max(triplet_i_fn.max());
         let scale = 1.0 / (max - min);
         Self {
+            score_weight: score_weight.abs() / scale,
             singlet_fn: singlet_fn.translate(-min).scale(scale),
             doublet_fn: doublet_fn.translate(-min).scale(scale),
             triplet_l_fn: triplet_l_fn.translate(-min).scale(scale),
@@ -55,6 +60,7 @@ impl Genome {
 
     pub fn mutate(&self, mut mutator: impl FnMut(f32) -> f32) -> Self {
         Self::new(
+            mutator(self.score_weight),
             self.singlet_fn.mutate(&mut mutator),
             self.doublet_fn.mutate(&mut mutator),
             self.triplet_l_fn.mutate(&mut mutator),

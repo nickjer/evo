@@ -46,6 +46,7 @@ struct RandomPlantsConfig {
 #[derive(Deserialize)]
 struct StaticPlantsConfig {
     position: Position,
+    score_weight: f32,
     singlet: SingletFn,
     doublet: DoubletFn,
     triplet_l: TripletFn,
@@ -80,6 +81,7 @@ fn main() -> Result<()> {
         println!("Adding static plant at {:?}", plant_config.position);
         world.add_plant(
             Genome::new(
+                plant_config.score_weight,
                 plant_config.singlet,
                 plant_config.doublet,
                 plant_config.triplet_l,
@@ -92,12 +94,19 @@ fn main() -> Result<()> {
     let mut rng = Rng::from_seed(config.rng_seed);
     let num_plants = config.random_plants.total;
     for _ in 0..num_plants {
+        let score_weight = rng.norm() * 2.0;
         let singlet_fn = SingletFn::from_fn(|| rng.norm() * 2.0);
         let doublet_fn = DoubletFn::from_fn(|| rng.norm() * 2.0);
         let triplet_l_fn = TripletFn::from_fn(|| rng.norm() * 2.0);
         let triplet_i_fn = TripletFn::from_fn(|| rng.norm() * 2.0);
 
-        let genome = Genome::new(singlet_fn, doublet_fn, triplet_l_fn, triplet_i_fn);
+        let genome = Genome::new(
+            score_weight,
+            singlet_fn,
+            doublet_fn,
+            triplet_l_fn,
+            triplet_i_fn,
+        );
         let position = Position::new(rng.uniform(x_size), rng.uniform(y_size));
         println!("Adding random plant at {:?}", position);
         world.add_plant(genome, position);

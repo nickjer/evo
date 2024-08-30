@@ -9,6 +9,7 @@ total = 30
 
 [[static_plants]]
 position = { x = 20, y = 20 }
+score_weight = 10.0
 
 [static_plants.singlet]
 e = -3.1290907859802246
@@ -64,6 +65,7 @@ ooo = 2.690556287765503
 
 [[static_plants]]
 position = { x = 100, y = 100 }
+score_weight = 10.0
 
 [static_plants.singlet]
 e = -3.2884864807128906
@@ -119,6 +121,7 @@ ooo = 2.5187864303588867
 
 [[static_plants]]
 position = { x = 100, y = 20 }
+score_weight = 10.0
 
 [static_plants.singlet]
 e = 1.60439932346344
@@ -174,6 +177,7 @@ ooo = 3.533200263977051
 
 [[static_plants]]
 position = { x = 180, y = 180 }
+score_weight = 10.0
 
 [static_plants.singlet]
 e = 1.7519699335098267

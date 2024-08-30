@@ -63,9 +63,9 @@ impl Organisms {
         &mut self,
         genome_id: GenomeId,
         round: usize,
-        mut mutator: impl FnMut(f32) -> f32,
+        rng: &mut Rng,
     ) -> PlantId {
-        let new_genome = self.genome(genome_id).mutate(&mut mutator);
+        let new_genome = self.genome(genome_id).mutate(rng);
         let new_genome_id = self.add_genome(new_genome, Some(genome_id), round);
         self.add_plant(new_genome_id)
     }

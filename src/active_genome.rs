@@ -45,8 +45,8 @@ impl ActiveGenome {
         }
     }
 
-    pub fn mutate(&self, mut mutator: impl FnMut(f32) -> f32) -> Genome {
-        self.genome.mutate(&mut mutator)
+    pub fn mutate(&self, rng: &mut Rng) -> Genome {
+        self.genome.mutate(rng)
     }
 
     pub fn increment(&mut self) -> usize {

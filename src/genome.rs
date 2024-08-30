@@ -2,6 +2,7 @@ use crate::doublet_fn::DoubletFn;
 use crate::entity::GreedyEntity;
 use crate::grid::Grid;
 use crate::plants::PlantId;
+use crate::rand::Rng;
 use crate::singlet_fn::SingletFn;
 use crate::tiles::TileId;
 use crate::triplet_fn::TripletFn;
@@ -58,9 +59,11 @@ impl Genome {
         }
     }
 
-    pub fn mutate(&self, mut mutator: impl FnMut(f32) -> f32) -> Self {
+    pub fn mutate(&self, rng: &mut Rng) -> Self {
+        let score_weight = self.score_weight + rng.norm() * 0.1 * self.score_weight;
+        let mut mutator = |value| value + rng.norm() * 0.01;
         Self::new(
-            self.score_weight + mutator(0.0) * 10.0 * self.score_weight,
+            score_weight,
             self.singlet_fn.mutate(&mut mutator),
             self.doublet_fn.mutate(&mut mutator),
             self.triplet_l_fn.mutate(&mut mutator),

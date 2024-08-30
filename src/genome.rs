@@ -60,7 +60,7 @@ impl Genome {
 
     pub fn mutate(&self, mut mutator: impl FnMut(f32) -> f32) -> Self {
         Self::new(
-            mutator(self.score_weight),
+            self.score_weight + mutator(0.0) * 10.0 * self.score_weight,
             self.singlet_fn.mutate(&mut mutator),
             self.doublet_fn.mutate(&mut mutator),
             self.triplet_l_fn.mutate(&mut mutator),

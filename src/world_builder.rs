@@ -1,7 +1,7 @@
 use crate::blob::Blob;
 use crate::doublet::Doublet;
 use crate::entity::Entity;
-use crate::genomes::TripletGenome;
+use crate::genome::GenomeKind;
 use crate::grid::Grid;
 use crate::neighbors::Neighbors;
 use crate::position::Position;
@@ -16,7 +16,7 @@ pub struct WorldBuilder {
     y_size: usize,
     seed_rate: f32,
     mutation_rate: f32,
-    plants: Vec<(TripletGenome, Position)>,
+    plants: Vec<(GenomeKind, Position)>,
 }
 
 impl WorldBuilder {
@@ -30,7 +30,7 @@ impl WorldBuilder {
         }
     }
 
-    pub fn add_plant(&mut self, genome: TripletGenome, cell_position: Position) -> &mut Self {
+    pub fn add_plant(&mut self, genome: GenomeKind, cell_position: Position) -> &mut Self {
         self.plants.push((genome, cell_position));
         self
     }

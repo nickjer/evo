@@ -1,5 +1,6 @@
 use crate::entity::Entity;
-use crate::genomes::{GenomeId, TripletGenome};
+use crate::genome::GenomeKind;
+use crate::genomes::GenomeId;
 use crate::grid::Grid;
 use crate::organisms::Organisms;
 use crate::plants::PlantId;
@@ -141,7 +142,7 @@ impl World {
         });
     }
 
-    pub fn add_genome(&mut self, genome: TripletGenome) -> GenomeId {
+    pub fn add_genome(&mut self, genome: GenomeKind) -> GenomeId {
         self.organisms.add_genome(genome, None, 0)
     }
 

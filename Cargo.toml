@@ -10,6 +10,7 @@ anyhow = "1.0"
 approx = "0.5"
 config = "0.14"
 derive_more = { version = "1", features = ["full"] }
+enum_dispatch = "0.3"
 fixedbitset = "0.5"
 getset = "0.1"
 itertools = "0.13"

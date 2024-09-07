@@ -1,5 +1,6 @@
 use crate::doublet_fn::DoubletFn;
 use crate::entity::GreedyEntity;
+use crate::genome::{Genome, GenomeKind};
 use crate::grid::Grid;
 use crate::plants::PlantId;
 use crate::rand::Rng;
@@ -21,7 +22,6 @@ struct Config {
 #[derive(Debug, Copy, Clone, Getters, Serialize, Deserialize)]
 #[serde(from = "Config", into = "Config")]
 pub struct TripletGenome {
-    #[getset(get = "pub")]
     score_weight: f32,
 
     #[getset(get = "pub")]
@@ -116,8 +116,14 @@ impl TripletGenome {
         }
         .rescale()
     }
+}
 
-    pub fn mutate(&self, rng: &mut Rng) -> Self {
+impl Genome for TripletGenome {
+    fn score_weight(&self) -> f32 {
+        self.score_weight
+    }
+
+    fn mutate(&self, rng: &mut Rng) -> GenomeKind {
         let score_weight = self.score_weight + rng.norm() * 0.1 * self.score_weight;
         let mut mutator = |value| value + rng.norm() * 0.01;
         Self::new(
@@ -127,15 +133,10 @@ impl TripletGenome {
             self.triplet_l_fn.mutate(&mut mutator),
             self.triplet_i_fn.mutate(&mut mutator),
         )
+        .into()
     }
 
-    pub fn score(
-        &self,
-        plant_id: PlantId,
-        grid: &Grid,
-        tile_id: TileId,
-        points: usize,
-    ) -> Option<f32> {
+    fn score(&self, plant_id: PlantId, grid: &Grid, tile_id: TileId, points: usize) -> Option<f32> {
         let entity_1 = grid.entity(tile_id).into_greedy(plant_id);
         match entity_1 {
             GreedyEntity::Empty => {}

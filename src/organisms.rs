@@ -1,7 +1,8 @@
 use crate::active_genome::ActiveGenome;
 use crate::active_plant::ActivePlant;
 use crate::either::Either::{self, *};
-use crate::genomes::{GenomeId, Genomes, TripletGenome};
+use crate::genome::GenomeKind;
+use crate::genomes::{GenomeId, Genomes};
 use crate::grid::Grid;
 use crate::inactive_genome::InactiveGenome;
 use crate::inactive_plant::InactivePlant;
@@ -80,7 +81,7 @@ impl Organisms {
 
     pub fn add_genome(
         &mut self,
-        genome: TripletGenome,
+        genome: GenomeKind,
         parent_genome_id: Option<GenomeId>,
         round: usize,
     ) -> GenomeId {
@@ -136,7 +137,7 @@ impl Organisms {
         let parent_genome_id = active_genome.parent_genome_id();
         self.genomes[genome_id] = Dead(InactiveGenome::new(
             genome_id,
-            *genome,
+            genome.clone(),
             max_yield,
             created_at,
             round,

@@ -28,7 +28,7 @@ mod world;
 mod world_builder;
 
 use crate::genome::GenomeKind;
-use crate::genomes::TripletGenome;
+use crate::genomes::{DoubletGenome, TripletGenome};
 use crate::position::Position;
 use crate::rand::Rng;
 use crate::world_builder::WorldBuilder;
@@ -38,6 +38,7 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 struct RandomPlantsConfig {
+    kind: String,
     total: usize,
 }
 
@@ -56,7 +57,7 @@ struct Config {
     snapshot_interval: usize,
     max_steps: usize,
     rng_seed: u64,
-    random_plants: RandomPlantsConfig,
+    random_plants: Vec<RandomPlantsConfig>,
     static_plants: Vec<StaticPlantsConfig>,
 }
 
@@ -79,12 +80,20 @@ fn main() -> Result<()> {
     }
 
     let mut rng = Rng::from_seed(config.rng_seed);
-    let num_plants = config.random_plants.total;
-    for _ in 0..num_plants {
-        let genome = TripletGenome::random(&mut rng).into();
-        let position = Position::new(rng.uniform(x_size), rng.uniform(y_size));
-        println!("Adding random plant at {:?}", position);
-        world.add_plant(genome, position);
+    for plant_config in config.random_plants {
+        let num_plants = plant_config.total;
+        for _ in 0..num_plants {
+            let genome = match plant_config.kind.as_str() {
+                "doublet_genome" => DoubletGenome::random(&mut rng).into(),
+                "triplet_genome" => TripletGenome::random(&mut rng).into(),
+                _ => {
+                    return Err(anyhow::anyhow!("Unknown plant kind: {}", plant_config.kind));
+                }
+            };
+            let position = Position::new(rng.uniform(x_size), rng.uniform(y_size));
+            println!("Adding random plant at {:?}", position);
+            world.add_plant(genome, position);
+        }
     }
     let max_steps = config.max_steps;
     let snapshot_interval = config.snapshot_interval;

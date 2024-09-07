@@ -4,13 +4,14 @@ y_size = 200
 snapshot_interval = 200
 max_steps = 10_000
 
-[random_plants]
+[[random_plants]]
+kind = "triplet_genome"
 total = 30
 
 [[static_plants]]
+kind = "triplet_genome"
 position = { x = 20, y = 20 }
 score_weight = 10.0
-type = "triplet_genome"
 
 [static_plants.singlet]
 e = -3.1290907859802246
@@ -65,9 +66,9 @@ oos = -1.4476882219314575
 ooo = 2.690556287765503
 
 [[static_plants]]
+kind = "triplet_genome"
 position = { x = 100, y = 100 }
 score_weight = 10.0
-type = "triplet_genome"
 
 [static_plants.singlet]
 e = -3.2884864807128906
@@ -122,9 +123,9 @@ oos = -1.1902740001678467
 ooo = 2.5187864303588867
 
 [[static_plants]]
+kind = "triplet_genome"
 position = { x = 100, y = 20 }
 score_weight = 10.0
-type = "triplet_genome"
 
 [static_plants.singlet]
 e = 1.60439932346344
@@ -179,9 +180,9 @@ oos = -0.3063088655471802
 ooo = 3.533200263977051
 
 [[static_plants]]
+kind = "triplet_genome"
 position = { x = 180, y = 180 }
 score_weight = 10.0
-type = "triplet_genome"
 
 [static_plants.singlet]
 e = 1.7519699335098267

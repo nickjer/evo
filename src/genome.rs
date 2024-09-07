@@ -1,4 +1,4 @@
-use crate::genomes::TripletGenome;
+use crate::genomes::{DoubletGenome, TripletGenome};
 use crate::grid::Grid;
 use crate::plants::PlantId;
 use crate::rand::Rng;
@@ -8,8 +8,9 @@ use serde::{Deserialize, Serialize};
 
 #[enum_dispatch]
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(tag = "kind", rename_all = "snake_case")]
 pub enum GenomeKind {
+    DoubletGenome,
     TripletGenome,
 }
 

@@ -27,12 +27,9 @@ mod triplet_l;
 mod world;
 mod world_builder;
 
-use crate::doublet_fn::DoubletFn;
 use crate::genome::Genome;
 use crate::position::Position;
 use crate::rand::Rng;
-use crate::singlet_fn::SingletFn;
-use crate::triplet_fn::TripletFn;
 use crate::world_builder::WorldBuilder;
 use anyhow::{Context, Result};
 use config::File;
@@ -46,11 +43,9 @@ struct RandomPlantsConfig {
 #[derive(Deserialize)]
 struct StaticPlantsConfig {
     position: Position,
-    score_weight: f32,
-    singlet: SingletFn,
-    doublet: DoubletFn,
-    triplet_l: TripletFn,
-    triplet_i: TripletFn,
+
+    #[serde(flatten)]
+    genome: Genome,
 }
 
 #[derive(Deserialize)]
@@ -79,34 +74,13 @@ fn main() -> Result<()> {
 
     for plant_config in &config.static_plants {
         println!("Adding static plant at {:?}", plant_config.position);
-        world.add_plant(
-            Genome::new(
-                plant_config.score_weight,
-                plant_config.singlet,
-                plant_config.doublet,
-                plant_config.triplet_l,
-                plant_config.triplet_i,
-            ),
-            plant_config.position,
-        );
+        world.add_plant(plant_config.genome, plant_config.position);
     }
 
     let mut rng = Rng::from_seed(config.rng_seed);
     let num_plants = config.random_plants.total;
     for _ in 0..num_plants {
-        let score_weight = rng.norm() * 2.0;
-        let singlet_fn = SingletFn::from_fn(|| rng.norm() * 2.0);
-        let doublet_fn = DoubletFn::from_fn(|| rng.norm() * 2.0);
-        let triplet_l_fn = TripletFn::from_fn(|| rng.norm() * 2.0);
-        let triplet_i_fn = TripletFn::from_fn(|| rng.norm() * 2.0);
-
-        let genome = Genome::new(
-            score_weight,
-            singlet_fn,
-            doublet_fn,
-            triplet_l_fn,
-            triplet_i_fn,
-        );
+        let genome = Genome::random(&mut rng);
         let position = Position::new(rng.uniform(x_size), rng.uniform(y_size));
         println!("Adding random plant at {:?}", position);
         world.add_plant(genome, position);

@@ -7,56 +7,114 @@ use crate::singlet_fn::SingletFn;
 use crate::tiles::TileId;
 use crate::triplet_fn::TripletFn;
 use getset::Getters;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Copy, Clone, Getters, Serialize)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+pub struct Config {
+    score_weight: f32,
+    singlet: SingletFn,
+    doublet: DoubletFn,
+    triplet_l: TripletFn,
+    triplet_i: TripletFn,
+}
+
+#[derive(Debug, Copy, Clone, Getters, Serialize, Deserialize)]
+#[serde(from = "Config", into = "Config")]
 pub struct Genome {
     #[getset(get = "pub")]
     score_weight: f32,
 
-    #[serde(rename = "singlet")]
     #[getset(get = "pub")]
     singlet_fn: SingletFn,
 
-    #[serde(rename = "doublet")]
     #[getset(get = "pub")]
     doublet_fn: DoubletFn,
 
-    #[serde(rename = "triplet_l")]
     #[getset(get = "pub")]
     triplet_l_fn: TripletFn,
 
-    #[serde(rename = "triplet_i")]
     #[getset(get = "pub")]
     triplet_i_fn: TripletFn,
 }
 
+impl From<Config> for Genome {
+    fn from(config: Config) -> Self {
+        Self::new(
+            config.score_weight,
+            config.singlet,
+            config.doublet,
+            config.triplet_l,
+            config.triplet_i,
+        )
+    }
+}
+
+impl From<Genome> for Config {
+    fn from(genome: Genome) -> Self {
+        Config {
+            score_weight: genome.score_weight,
+            singlet: genome.singlet_fn,
+            doublet: genome.doublet_fn,
+            triplet_l: genome.triplet_l_fn,
+            triplet_i: genome.triplet_i_fn,
+        }
+    }
+}
+
 impl Genome {
-    pub fn new(
+    pub fn random(rng: &mut Rng) -> Self {
+        let score_weight = rng.norm() * 2.0;
+        let singlet_fn = SingletFn::from_fn(|| rng.norm() * 2.0);
+        let doublet_fn = DoubletFn::from_fn(|| rng.norm() * 2.0);
+        let triplet_l_fn = TripletFn::from_fn(|| rng.norm() * 2.0);
+        let triplet_i_fn = TripletFn::from_fn(|| rng.norm() * 2.0);
+        Self::new(
+            score_weight,
+            singlet_fn,
+            doublet_fn,
+            triplet_l_fn,
+            triplet_i_fn,
+        )
+    }
+
+    fn rescale(self) -> Self {
+        let min = self
+            .singlet_fn
+            .min()
+            .min(self.doublet_fn.min())
+            .min(self.triplet_l_fn.min())
+            .min(self.triplet_i_fn.min());
+        let max = self
+            .singlet_fn
+            .max()
+            .max(self.doublet_fn.max())
+            .max(self.triplet_l_fn.max())
+            .max(self.triplet_i_fn.max());
+        let scale = 1.0 / (max - min);
+        Self {
+            score_weight: self.score_weight.abs() / scale,
+            singlet_fn: self.singlet_fn.translate(-min).scale(scale),
+            doublet_fn: self.doublet_fn.translate(-min).scale(scale),
+            triplet_l_fn: self.triplet_l_fn.translate(-min).scale(scale),
+            triplet_i_fn: self.triplet_i_fn.translate(-min).scale(scale),
+        }
+    }
+
+    fn new(
         score_weight: f32,
         singlet_fn: SingletFn,
         doublet_fn: DoubletFn,
         triplet_l_fn: TripletFn,
         triplet_i_fn: TripletFn,
     ) -> Self {
-        let min = singlet_fn
-            .min()
-            .min(doublet_fn.min())
-            .min(triplet_l_fn.min())
-            .min(triplet_i_fn.min());
-        let max = singlet_fn
-            .max()
-            .max(doublet_fn.max())
-            .max(triplet_l_fn.max())
-            .max(triplet_i_fn.max());
-        let scale = 1.0 / (max - min);
         Self {
-            score_weight: score_weight.abs() / scale,
-            singlet_fn: singlet_fn.translate(-min).scale(scale),
-            doublet_fn: doublet_fn.translate(-min).scale(scale),
-            triplet_l_fn: triplet_l_fn.translate(-min).scale(scale),
-            triplet_i_fn: triplet_i_fn.translate(-min).scale(scale),
+            score_weight,
+            singlet_fn,
+            doublet_fn,
+            triplet_l_fn,
+            triplet_i_fn,
         }
+        .rescale()
     }
 
     pub fn mutate(&self, rng: &mut Rng) -> Self {

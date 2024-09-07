@@ -1,5 +1,4 @@
-use crate::genome::Genome;
-use crate::genomes::GenomeId;
+use crate::genomes::{GenomeId, TripletGenome};
 use crate::grid::Grid;
 use crate::plants::PlantId;
 use crate::rand::Rng;
@@ -15,7 +14,7 @@ pub struct ActiveGenome {
     id: GenomeId,
     #[serde(flatten)]
     #[getset(get = "pub")]
-    genome: Genome,
+    genome: TripletGenome,
     num_plants: usize,
     #[getset(get_copy = "pub")]
     max_yield: usize,
@@ -30,7 +29,7 @@ pub struct ActiveGenome {
 impl ActiveGenome {
     pub fn new(
         id: GenomeId,
-        genome: Genome,
+        genome: TripletGenome,
         parent_genome_id: Option<GenomeId>,
         created_at: usize,
     ) -> Self {
@@ -45,7 +44,7 @@ impl ActiveGenome {
         }
     }
 
-    pub fn mutate(&self, rng: &mut Rng) -> Genome {
+    pub fn mutate(&self, rng: &mut Rng) -> TripletGenome {
         self.genome.mutate(rng)
     }
 

@@ -1,8 +1,12 @@
+mod triplet_genome;
+
 use crate::active_genome::ActiveGenome;
 use crate::either::Either;
 use crate::inactive_genome::InactiveGenome;
 use derive_more::{Display, From, Into, IntoIterator};
 use serde::Serialize;
+
+pub use triplet_genome::TripletGenome;
 
 #[derive(
     Debug,

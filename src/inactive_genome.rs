@@ -1,5 +1,4 @@
-use crate::genome::Genome;
-use crate::genomes::GenomeId;
+use crate::genomes::{GenomeId, TripletGenome};
 use derive_more::Constructor;
 use getset::CopyGetters;
 use serde::Serialize;
@@ -9,7 +8,7 @@ pub struct InactiveGenome {
     id: GenomeId,
     #[serde(flatten)]
     #[getset(get = "pub")]
-    genome: Genome,
+    genome: TripletGenome,
     #[getset(get_copy = "pub")]
     max_yield: usize,
     created_at: usize,

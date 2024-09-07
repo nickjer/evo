@@ -10,7 +10,7 @@ use getset::Getters;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-pub struct Config {
+struct Config {
     score_weight: f32,
     singlet: SingletFn,
     doublet: DoubletFn,
@@ -20,7 +20,7 @@ pub struct Config {
 
 #[derive(Debug, Copy, Clone, Getters, Serialize, Deserialize)]
 #[serde(from = "Config", into = "Config")]
-pub struct Genome {
+pub struct TripletGenome {
     #[getset(get = "pub")]
     score_weight: f32,
 
@@ -37,7 +37,7 @@ pub struct Genome {
     triplet_i_fn: TripletFn,
 }
 
-impl From<Config> for Genome {
+impl From<Config> for TripletGenome {
     fn from(config: Config) -> Self {
         Self::new(
             config.score_weight,
@@ -49,8 +49,8 @@ impl From<Config> for Genome {
     }
 }
 
-impl From<Genome> for Config {
-    fn from(genome: Genome) -> Self {
+impl From<TripletGenome> for Config {
+    fn from(genome: TripletGenome) -> Self {
         Config {
             score_weight: genome.score_weight,
             singlet: genome.singlet_fn,
@@ -61,7 +61,7 @@ impl From<Genome> for Config {
     }
 }
 
-impl Genome {
+impl TripletGenome {
     pub fn random(rng: &mut Rng) -> Self {
         let score_weight = rng.norm() * 2.0;
         let singlet_fn = SingletFn::from_fn(|| rng.norm() * 2.0);

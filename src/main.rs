@@ -5,7 +5,6 @@ mod doublet;
 mod doublet_fn;
 mod either;
 mod entity;
-mod genome;
 mod genomes;
 mod grid;
 mod inactive_genome;
@@ -27,7 +26,7 @@ mod triplet_l;
 mod world;
 mod world_builder;
 
-use crate::genome::Genome;
+use crate::genomes::TripletGenome;
 use crate::position::Position;
 use crate::rand::Rng;
 use crate::world_builder::WorldBuilder;
@@ -45,7 +44,7 @@ struct StaticPlantsConfig {
     position: Position,
 
     #[serde(flatten)]
-    genome: Genome,
+    genome: TripletGenome,
 }
 
 #[derive(Deserialize)]
@@ -80,7 +79,7 @@ fn main() -> Result<()> {
     let mut rng = Rng::from_seed(config.rng_seed);
     let num_plants = config.random_plants.total;
     for _ in 0..num_plants {
-        let genome = Genome::random(&mut rng);
+        let genome = TripletGenome::random(&mut rng);
         let position = Position::new(rng.uniform(x_size), rng.uniform(y_size));
         println!("Adding random plant at {:?}", position);
         world.add_plant(genome, position);

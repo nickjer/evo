@@ -11,7 +11,6 @@ use std::io::Write;
 
 #[derive(Debug, Clone)]
 pub struct World {
-    col_size: usize,
     seed_rate: f32,
     mutation_rate: f32,
     grid: Grid,
@@ -19,10 +18,9 @@ pub struct World {
 }
 
 impl World {
-    pub fn new(col_size: usize, grid: Grid, seed_rate: f32, mutation_rate: f32) -> Self {
+    pub fn new(grid: Grid, seed_rate: f32, mutation_rate: f32) -> Self {
         let organisms = Organisms::default();
         World {
-            col_size,
             seed_rate,
             mutation_rate,
             grid,
@@ -34,8 +32,8 @@ impl World {
         let file = std::fs::File::create("data.js").unwrap();
         let mut file = std::io::LineWriter::new(file);
 
-        let x = self.grid.size() / self.col_size;
-        let y = self.col_size;
+        let x = self.grid.x_size();
+        let y = self.grid.y_size();
         writeln!(file, "const board = {{ x_size: {x}, y_size: {y} }};").unwrap();
         writeln!(file, "let tile_snapshots = [];").unwrap();
         Self::write_snapshot(&mut file, self.tile_snapshot());
@@ -169,8 +167,7 @@ impl World {
 
     fn tile_snapshot(&self) -> Vec<Vec<usize>> {
         self.grid
-            .entity_chunks(self.col_size)
-            .into_iter()
+            .columns()
             .map(|chunk| {
                 chunk
                     .iter()

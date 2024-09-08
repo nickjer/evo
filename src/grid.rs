@@ -2,6 +2,8 @@ use crate::blob::Blob;
 use crate::doublet::Doublet;
 use crate::entity::Entity;
 use crate::neighbors::Neighbors;
+use crate::position::Position;
+use crate::tile_id_builder::TileIdBuilder;
 use crate::tiles::TileId;
 use crate::tiles::Tiles;
 use crate::triplet_i::TripletI;
@@ -10,6 +12,7 @@ use getset::CopyGetters;
 
 #[derive(Debug, Clone, CopyGetters, Default)]
 pub struct Grid {
+    col_size: usize,
     #[get_copy = "pub"]
     size: usize,
     entities: Tiles<Entity>,
@@ -22,27 +25,54 @@ pub struct Grid {
 }
 
 impl Grid {
-    pub fn entity_chunks(&self, chunk_size: usize) -> Vec<&[Entity]> {
-        self.entities.chunks(chunk_size).collect()
+    pub fn new(x_size: usize, y_size: usize) -> Self {
+        let mut entities = Tiles::default();
+        let mut neighbors = Tiles::default();
+        let mut doublets = Tiles::default();
+        let mut triplets_l = Tiles::default();
+        let mut triplets_i = Tiles::default();
+        let mut blobs = Tiles::default();
+        let mut nonces = Tiles::default();
+        for x in 0..x_size {
+            for y in 0..y_size {
+                let position = Position::new(x, y);
+                let tile_id_builder = TileIdBuilder::new(position, x_size, y_size);
+
+                entities.push(Entity::Empty);
+                neighbors.push(Neighbors::build(tile_id_builder.clone()));
+                doublets.push(Doublet::build(tile_id_builder.clone()));
+                triplets_l.push(TripletL::build(tile_id_builder.clone()));
+                triplets_i.push(TripletI::build(tile_id_builder.clone()));
+                blobs.push(Blob::build(tile_id_builder.clone()));
+                nonces.push(0);
+            }
+        }
+
+        let col_size = y_size;
+        let size = x_size * y_size;
+        Grid {
+            col_size,
+            size,
+            entities,
+            neighbors,
+            doublets,
+            triplets_l,
+            triplets_i,
+            blobs,
+            nonces,
+        }
     }
 
-    pub fn push(
-        &mut self,
-        entity: Entity,
-        neighbors: Neighbors,
-        doublets: [Doublet; 4],
-        triplets_l: [TripletL; 8],
-        triplets_i: [TripletI; 4],
-        blob: Blob,
-    ) {
-        self.size += 1;
-        self.entities.push(entity);
-        self.neighbors.push(neighbors);
-        self.doublets.push(doublets);
-        self.triplets_l.push(triplets_l);
-        self.triplets_i.push(triplets_i);
-        self.blobs.push(blob);
-        self.nonces.push(1);
+    pub fn x_size(&self) -> usize {
+        self.size / self.col_size
+    }
+
+    pub fn y_size(&self) -> usize {
+        self.col_size
+    }
+
+    pub fn columns(&self) -> impl Iterator<Item = &[Entity]> {
+        self.entities.chunks(self.col_size)
     }
 
     pub fn is_empty(&self, tile_id: TileId) -> bool {

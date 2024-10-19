@@ -1,4 +1,4 @@
-use derive_more::{From, Into};
+use derive_more::{From, Into, IntoIterator};
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, From, Into)]
 pub struct TileId(usize);
@@ -11,8 +11,8 @@ impl std::hash::Hash for TileId {
 
 impl nohash::IsEnabled for TileId {}
 
-#[derive(Debug, Clone)]
-pub struct Tiles<T>(Vec<T>);
+#[derive(Debug, Clone, IntoIterator)]
+pub struct Tiles<T>(#[into_iterator(ref)] Vec<T>);
 
 impl<T> Tiles<T> {
     pub fn push(&mut self, value: T) {

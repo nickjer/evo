@@ -31,6 +31,7 @@ use crate::genome::GenomeKind;
 use crate::genomes::{DoubletGenome, TripletGenome};
 use crate::position::Position;
 use crate::rand::Rng;
+use crate::world::World;
 use crate::world_builder::WorldBuilder;
 use anyhow::{Context, Result};
 use config::File;
@@ -68,6 +69,7 @@ fn main() -> Result<()> {
     let config: Config = config
         .try_deserialize()
         .context("Failed to deserialize config file")?;
+    let mut rng = Rng::from_seed(config.rng_seed);
 
     let x_size = config.x_size;
     let y_size = config.y_size;
@@ -78,25 +80,47 @@ fn main() -> Result<()> {
         println!("Adding static plant at {:?}", plant_config.position);
         world.add_plant(plant_config.genome, plant_config.position);
     }
+    let mut world = world.build();
 
-    let mut rng = Rng::from_seed(config.rng_seed);
-    for plant_config in config.random_plants {
-        let num_plants = plant_config.total;
-        for _ in 0..num_plants {
-            let genome = match plant_config.kind.as_str() {
-                "doublet_genome" => DoubletGenome::random(&mut rng).into(),
-                "triplet_genome" => TripletGenome::random(&mut rng).into(),
-                _ => {
-                    return Err(anyhow::anyhow!("Unknown plant kind: {}", plant_config.kind));
-                }
-            };
-            let position = Position::new(rng.uniform(x_size), rng.uniform(y_size));
-            println!("Adding random plant at {:?}", position);
-            world.add_plant(genome, position);
-        }
-    }
+    add_random_plants(&mut world, &config.random_plants, &mut rng)?;
+
     let max_steps = config.max_steps;
     let snapshot_interval = config.snapshot_interval;
-    world.build().run(&mut rng, max_steps, snapshot_interval);
+    world.run(&mut rng, max_steps, snapshot_interval);
+    Ok(())
+}
+
+fn add_random_plants(
+    world: &mut World,
+    configs: &[RandomPlantsConfig],
+    rng: &mut Rng,
+) -> Result<()> {
+    let random_genomes = configs
+        .iter()
+        .flat_map(|config| (0..config.total).map(|_| config.kind.as_str()))
+        .map(|kind| match kind {
+            "doublet_genome" => Ok(DoubletGenome::random(rng).into()),
+            "triplet_genome" => Ok(TripletGenome::random(rng).into()),
+            _ => Err(anyhow::anyhow!("Unknown plant kind: {}", kind)),
+        })
+        .collect::<Result<Vec<GenomeKind>>>()?;
+
+    let mut empty_tiles = world.empty_tiles();
+    if random_genomes.len() > empty_tiles.len() {
+        anyhow::bail!(
+            "Not enough empty tiles to place {} random plants",
+            random_genomes.len()
+        );
+    }
+
+    rng.shuffle(&mut empty_tiles);
+    random_genomes
+        .into_iter()
+        .zip(empty_tiles)
+        .for_each(|(genome, tile_id)| {
+            let genome_id = world.add_genome(genome);
+            world.add_plant(genome_id, tile_id);
+        });
+
     Ok(())
 }

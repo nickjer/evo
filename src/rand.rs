@@ -1,5 +1,6 @@
 use rand::distributions::{Distribution, Uniform};
 use rand::rngs::SmallRng;
+use rand::seq::SliceRandom;
 use rand::SeedableRng;
 use rand_distr::StandardNormal;
 
@@ -21,5 +22,9 @@ impl Rng {
 
     pub fn uniform(&mut self, max: usize) -> usize {
         Uniform::new(0, max).sample(&mut self.0)
+    }
+
+    pub fn shuffle<T>(&mut self, slice: &mut [T]) {
+        slice.shuffle(&mut self.0);
     }
 }

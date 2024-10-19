@@ -79,6 +79,15 @@ impl Grid {
         self.entities[tile_id].is_empty()
     }
 
+    pub fn empty_tiles(&self) -> Vec<TileId> {
+        (&self.entities)
+            .into_iter()
+            .enumerate()
+            .filter(|(_, entity)| entity.is_empty())
+            .map(|(tile_id, _)| TileId::from(tile_id))
+            .collect()
+    }
+
     pub fn nonce(&self, tile_id: TileId) -> usize {
         self.nonces[tile_id]
     }

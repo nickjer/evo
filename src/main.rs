@@ -27,10 +27,8 @@ mod world;
 mod world_builder;
 
 use crate::genome::GenomeKind;
-use crate::genomes::{DoubletGenome, TripletGenome};
 use crate::position::Position;
 use crate::rand::Rng;
-use crate::world::World;
 use crate::world_builder::WorldBuilder;
 use anyhow::{Context, Result};
 use config::File;
@@ -77,49 +75,18 @@ fn main() -> Result<()> {
 
     for plant_config in config.static_plants {
         println!("Adding static plant at {:?}", plant_config.position);
-        world.add_plant(plant_config.genome, plant_config.position);
+        world.add_plant(plant_config.genome, plant_config.position)?;
     }
+    for plant_config in config.random_plants {
+        let total = plant_config.total;
+        let kind = &plant_config.kind;
+        println!("Adding {total} {kind} random plants");
+        world.add_random_plants(kind, total, &mut rng)?;
+    }
+
     let mut world = world.build();
-
-    add_random_plants(&mut world, &config.random_plants, &mut rng)?;
-
     let max_steps = config.max_steps;
     let snapshot_interval = config.snapshot_interval;
     world.run(&mut rng, max_steps, snapshot_interval);
-    Ok(())
-}
-
-fn add_random_plants(
-    world: &mut World,
-    configs: &[RandomPlantsConfig],
-    rng: &mut Rng,
-) -> Result<()> {
-    let random_genomes = configs
-        .iter()
-        .flat_map(|config| (0..config.total).map(|_| config.kind.as_str()))
-        .map(|kind| match kind {
-            "doublet_genome" => Ok(DoubletGenome::random(rng).into()),
-            "triplet_genome" => Ok(TripletGenome::random(rng).into()),
-            _ => Err(anyhow::anyhow!("Unknown plant kind: {}", kind)),
-        })
-        .collect::<Result<Vec<GenomeKind>>>()?;
-
-    let mut empty_tiles = world.empty_tiles();
-    if random_genomes.len() > empty_tiles.len() {
-        anyhow::bail!(
-            "Not enough empty tiles to place {} random plants",
-            random_genomes.len()
-        );
-    }
-
-    rng.shuffle(&mut empty_tiles);
-    random_genomes
-        .into_iter()
-        .zip(empty_tiles)
-        .for_each(|(genome, tile_id)| {
-            let genome_id = world.add_genome(genome);
-            world.add_plant(genome_id, tile_id);
-        });
-
     Ok(())
 }

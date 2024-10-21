@@ -21,15 +21,14 @@ pub struct Grid {
 }
 
 impl Grid {
-    pub fn new(x_size: usize, y_size: usize) -> Self {
+    pub fn new(grid: SquareGrid) -> Self {
         let mut entities = Tiles::default();
         let mut doublets = Tiles::default();
         let mut triplets_l = Tiles::default();
         let mut triplets_i = Tiles::default();
         let mut blobs = Tiles::default();
         let mut nonces = Tiles::default();
-        let grid = SquareGrid::new(x_size, y_size);
-        grid.tile_ids().for_each(|tile_id| {
+        grid.tile_id_iter().for_each(|tile_id| {
             entities.push(Entity::Empty);
             doublets.push(Doublet::from(tile_id, &grid));
             triplets_i.push(TripletI::from(tile_id, &grid));

@@ -28,10 +28,6 @@ impl World {
         }
     }
 
-    pub fn empty_tiles(&self) -> Vec<TileId> {
-        self.grid.empty_tiles()
-    }
-
     pub fn run(&mut self, rng: &mut Rng, max_rounds: usize, snapshot_interval: usize) {
         let file = std::fs::File::create("data.js").unwrap();
         let mut file = std::io::LineWriter::new(file);

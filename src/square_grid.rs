@@ -62,7 +62,7 @@ impl SquareGrid {
         self.x_size.checked_mul(self.y_size).unwrap()
     }
 
-    pub fn tile_ids(&self) -> impl Iterator<Item = TileId> {
+    pub fn tile_id_iter(&self) -> impl Iterator<Item = TileId> {
         (0..self.size()).map(TileId::from)
     }
 

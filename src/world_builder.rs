@@ -1,7 +1,6 @@
 use crate::genome::GenomeKind;
 use crate::grid::Grid;
 use crate::position::Position;
-use crate::tile_id_builder::TileIdBuilder;
 use crate::world::World;
 
 #[derive(Debug, Clone)]
@@ -41,10 +40,17 @@ impl WorldBuilder {
 
     pub fn build(self) -> World {
         let grid = Grid::new(self.x_size, self.y_size);
+        let plants = self
+            .plants
+            .into_iter()
+            .map(|(genome, cell_position)| {
+                let tile_id = grid.id_at(cell_position);
+                (genome, tile_id)
+            })
+            .collect::<Vec<_>>();
+
         let mut world = World::new(grid, self.seed_rate, self.mutation_rate);
-        self.plants.into_iter().for_each(|(genome, cell_position)| {
-            let tile_id_builder = TileIdBuilder::new(cell_position, self.x_size, self.y_size);
-            let tile_id = tile_id_builder.build();
+        plants.into_iter().for_each(|(genome, tile_id)| {
             let genome_id = world.add_genome(genome);
             world.add_plant(genome_id, tile_id);
         });

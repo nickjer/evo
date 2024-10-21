@@ -108,7 +108,11 @@ impl ActivePlant {
             self.surface_map.insert(tile_id, neighboring_cells.len());
         }
 
-        let original_neighbors = grid.neighbors(tile_id).as_set();
+        let original_neighbors = grid
+            .neighbors(tile_id)
+            .iter()
+            .copied()
+            .collect::<IntSet<_>>();
         original_neighbors
             .difference(&neighboring_cells)
             .for_each(|&unowned_tile_id| {

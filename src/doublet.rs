@@ -1,16 +1,17 @@
-use crate::tile_id_builder::TileIdBuilder;
+use crate::square_grid::SquareGrid;
+use crate::step::Step::*;
 use crate::tiles::TileId;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Doublet(TileId);
 
 impl Doublet {
-    pub fn build(tile_id_builder: TileIdBuilder) -> [Self; 4] {
+    pub fn from(tile_id: TileId, grid: &SquareGrid) -> [Self; 4] {
         [
-            Self(tile_id_builder.clone().up(1).build()),
-            Self(tile_id_builder.clone().right(1).build()),
-            Self(tile_id_builder.clone().down(1).build()),
-            Self(tile_id_builder.clone().left(1).build()),
+            Self(grid.id_from(tile_id, &[Up])),
+            Self(grid.id_from(tile_id, &[Right])),
+            Self(grid.id_from(tile_id, &[Down])),
+            Self(grid.id_from(tile_id, &[Left])),
         ]
     }
 

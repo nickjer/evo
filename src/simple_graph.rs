@@ -1,5 +1,3 @@
-use crate::neighbors::Neighbors;
-use crate::neighbors::NEIGHBOR_COUNT;
 use crate::tiles::TileId;
 use derive_more::IntoIterator;
 use fixedbitset::FixedBitSet;
@@ -25,14 +23,16 @@ impl SimpleGraph {
         &self.node_map[&node_id]
     }
 
-    pub fn add_node(&mut self, node_id: TileId, neighbor_ids: &Neighbors) -> Vec<TileId> {
+    pub fn add_node(&mut self, node_id: TileId, neighbor_ids: &[TileId]) -> Vec<TileId> {
+        let neighbor_size = neighbor_ids.len();
         let mut links = IntSet::with_capacity_and_hasher(
-            NEIGHBOR_COUNT,
+            neighbor_size,
             std::hash::BuildHasherDefault::default(),
         );
-        let mut unlinked_neighbors = Vec::with_capacity(NEIGHBOR_COUNT);
-        neighbor_ids.into_iter().for_each(|neighbor_id| {
-            match self.node_map.get_mut(&neighbor_id) {
+        let mut unlinked_neighbors = Vec::with_capacity(neighbor_size);
+        neighbor_ids
+            .iter()
+            .for_each(|&neighbor_id| match self.node_map.get_mut(&neighbor_id) {
                 Some(reverse_links) => {
                     links.insert(neighbor_id);
                     reverse_links.insert(node_id);
@@ -40,8 +40,7 @@ impl SimpleGraph {
                 None => {
                     unlinked_neighbors.push(neighbor_id);
                 }
-            }
-        });
+            });
         self.node_map.insert(node_id, links);
         unlinked_neighbors
     }

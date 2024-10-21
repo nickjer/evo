@@ -1,43 +1,44 @@
-use crate::tile_id_builder::TileIdBuilder;
+use crate::square_grid::SquareGrid;
+use crate::step::Step::*;
 use crate::tiles::TileId;
 
 #[derive(Debug, Copy, Clone)]
 pub struct TripletL(TileId, TileId);
 
 impl TripletL {
-    pub fn build(tile_id_builder: TileIdBuilder) -> [Self; 8] {
+    pub fn from(tile_id: TileId, grid: &SquareGrid) -> [Self; 8] {
         [
             Self(
-                tile_id_builder.clone().up(1).build(),
-                tile_id_builder.clone().up(1).right(1).build(),
+                grid.id_from(tile_id, &[Up]),
+                grid.id_from(tile_id, &[Up, Right]),
             ),
             Self(
-                tile_id_builder.clone().up(1).build(),
-                tile_id_builder.clone().up(1).left(1).build(),
+                grid.id_from(tile_id, &[Up]),
+                grid.id_from(tile_id, &[Up, Left]),
             ),
             Self(
-                tile_id_builder.clone().right(1).build(),
-                tile_id_builder.clone().right(1).down(1).build(),
+                grid.id_from(tile_id, &[Right]),
+                grid.id_from(tile_id, &[Right, Down]),
             ),
             Self(
-                tile_id_builder.clone().right(1).build(),
-                tile_id_builder.clone().right(1).up(1).build(),
+                grid.id_from(tile_id, &[Right]),
+                grid.id_from(tile_id, &[Right, Up]),
             ),
             Self(
-                tile_id_builder.clone().down(1).build(),
-                tile_id_builder.clone().down(1).left(1).build(),
+                grid.id_from(tile_id, &[Down]),
+                grid.id_from(tile_id, &[Down, Left]),
             ),
             Self(
-                tile_id_builder.clone().down(1).build(),
-                tile_id_builder.clone().down(1).right(1).build(),
+                grid.id_from(tile_id, &[Down]),
+                grid.id_from(tile_id, &[Down, Right]),
             ),
             Self(
-                tile_id_builder.clone().left(1).build(),
-                tile_id_builder.clone().left(1).up(1).build(),
+                grid.id_from(tile_id, &[Left]),
+                grid.id_from(tile_id, &[Left, Up]),
             ),
             Self(
-                tile_id_builder.clone().left(1).build(),
-                tile_id_builder.clone().left(1).down(1).build(),
+                grid.id_from(tile_id, &[Left]),
+                grid.id_from(tile_id, &[Left, Down]),
             ),
         ]
     }

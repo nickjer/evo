@@ -55,6 +55,9 @@ struct Config {
     snapshot_interval: usize,
     max_steps: usize,
     rng_seed: u64,
+    take_top: usize,
+    seed_rate: f32,
+    mutation_rate: f32,
     random_plants: Vec<RandomPlantsConfig>,
     static_plants: Vec<StaticPlantsConfig>,
 }
@@ -71,7 +74,10 @@ fn main() -> Result<()> {
     let x_size = config.x_size;
     let y_size = config.y_size;
     let mut world = WorldBuilder::new(x_size, y_size);
-    world.seed_rate(0.1).mutation_rate(0.1);
+    world
+        .take_top(config.take_top)
+        .seed_rate(config.seed_rate)
+        .mutation_rate(config.mutation_rate);
 
     for plant_config in config.static_plants {
         println!("Adding static plant at {:?}", plant_config.position);

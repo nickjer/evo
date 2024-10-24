@@ -9,9 +9,10 @@ use crate::world::World;
 use anyhow::Result;
 use nohash::IntSet;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct WorldBuilder {
     grid: SquareGrid,
+    take_top: usize,
     seed_rate: f32,
     mutation_rate: f32,
     plants: Vec<(GenomeKind, TileId)>,
@@ -24,11 +25,14 @@ impl WorldBuilder {
         let unused_tiles = grid.tile_id_iter().collect();
         WorldBuilder {
             grid,
-            seed_rate: 0.1,
-            mutation_rate: 0.1,
-            plants: Vec::new(),
             unused_tiles,
+            ..Default::default()
         }
+    }
+
+    pub fn take_top(&mut self, take_top: usize) -> &mut Self {
+        self.take_top = take_top;
+        self
     }
 
     pub fn seed_rate(&mut self, seed_rate: f32) -> &mut Self {
@@ -84,7 +88,7 @@ impl WorldBuilder {
 
     pub fn build(self) -> World {
         let grid = Grid::new(self.grid);
-        let mut world = World::new(grid, self.seed_rate, self.mutation_rate);
+        let mut world = World::new(grid, self.take_top, self.seed_rate, self.mutation_rate);
         self.plants.into_iter().for_each(|(genome, tile_id)| {
             let genome_id = world.add_genome(genome);
             world.add_plant(genome_id, tile_id);

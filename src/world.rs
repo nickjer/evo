@@ -11,6 +11,7 @@ use std::io::Write;
 
 #[derive(Debug, Clone)]
 pub struct World {
+    take_top: usize,
     seed_rate: f32,
     mutation_rate: f32,
     grid: Grid,
@@ -18,9 +19,10 @@ pub struct World {
 }
 
 impl World {
-    pub fn new(grid: Grid, seed_rate: f32, mutation_rate: f32) -> Self {
+    pub fn new(grid: Grid, take_top: usize, seed_rate: f32, mutation_rate: f32) -> Self {
         let organisms = Organisms::default();
         World {
+            take_top,
             seed_rate,
             mutation_rate,
             grid,
@@ -68,7 +70,7 @@ impl World {
             tile_count += 1;
         }
 
-        let top_genomes = self.organisms.top_genomes(10);
+        let top_genomes = self.organisms.top_genomes(self.take_top);
         let trial_result = trial_result::TrialResult::new(top_genomes);
         let toml = toml::to_string_pretty(&trial_result).unwrap();
         std::fs::write("trial_result.toml", toml).unwrap();

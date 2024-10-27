@@ -1,6 +1,7 @@
 mod active_genome;
 mod active_plant;
 mod blob;
+mod cell_kind;
 mod doublet;
 mod doublet_fn;
 mod either;

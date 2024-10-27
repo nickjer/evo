@@ -1,3 +1,4 @@
+use crate::cell_kind::CellKind;
 use crate::entity::Entity;
 use crate::genome::GenomeKind;
 use crate::genomes::GenomeId;
@@ -79,12 +80,13 @@ impl World {
     fn replace_entity(&mut self, tile_id: TileId, new_entity: Entity) -> Entity {
         let old_entity = self.grid.replace_entity(tile_id, new_entity);
 
+        // FIXME: Figure out how to handle different cell kinds for the same plant
         if old_entity != new_entity {
-            if let Entity::Cell(plant_id) = new_entity {
+            if let Entity::Cell(plant_id, _) = new_entity {
                 self.organisms.occupy(plant_id, tile_id, &self.grid);
             }
 
-            if let Entity::Cell(old_plant_id) = old_entity {
+            if let Entity::Cell(old_plant_id, _) = old_entity {
                 let dead_cells = self.organisms.abandon(old_plant_id, tile_id, &self.grid);
                 self.set_empty(&dead_cells);
             }
@@ -110,7 +112,7 @@ impl World {
                 } else {
                     self.organisms.add_plant(genome_id)
                 };
-                self.replace_entity(tile_id, Entity::Cell(plant_id));
+                self.replace_entity(tile_id, Entity::Cell(plant_id, CellKind::Branch));
             }
         }
         self.organisms.remove_plant(plant_id, round);
@@ -123,7 +125,7 @@ impl World {
             self.organisms
                 .choose_tile(plant_id, &self.grid, energy_points, rng)
         {
-            let old_entity = self.replace_entity(tile_id, Entity::Cell(plant_id));
+            let old_entity = self.replace_entity(tile_id, Entity::Cell(plant_id, CellKind::Branch));
             if old_entity == Entity::Empty {
                 energy_points = energy_points.checked_sub(1).unwrap();
             } else {
@@ -148,7 +150,7 @@ impl World {
 
     pub fn add_plant(&mut self, genome_id: GenomeId, tile_id: TileId) {
         let new_plant_id = self.organisms.add_plant(genome_id);
-        self.replace_entity(tile_id, Entity::Cell(new_plant_id));
+        self.replace_entity(tile_id, Entity::Cell(new_plant_id, CellKind::Branch));
     }
 
     fn write_snapshot(writer: &mut impl Write, snapshot: Vec<Vec<usize>>) {
@@ -175,7 +177,7 @@ impl World {
                     .iter()
                     .map(|&entity| match entity {
                         Entity::Empty => 0,
-                        Entity::Cell(plant_id) => usize::from(plant_id) + 1,
+                        Entity::Cell(plant_id, _) => usize::from(plant_id) + 1,
                     })
                     .collect()
             })

@@ -5,7 +5,7 @@ use crate::simple_graph::{all_connected, components, SimpleGraph};
 use crate::tiles::TileId;
 use fixedbitset::FixedBitSet;
 use getset::CopyGetters;
-use nohash::{IntMap, IntSet};
+use nohash::IntSet;
 
 #[derive(Debug, Clone, CopyGetters, Default)]
 pub struct ActivePlant {
@@ -13,7 +13,6 @@ pub struct ActivePlant {
     #[get_copy = "pub"]
     genome_id: GenomeId,
     cells: SimpleGraph,
-    surface_map: IntMap<TileId, usize>,
 }
 
 impl ActivePlant {
@@ -30,19 +29,12 @@ impl ActivePlant {
     }
 
     pub fn occupy(&mut self, tile_id: TileId, grid: &Grid) -> usize {
-        let unlinked_neighbor_ids = self.cells.add_node(tile_id, grid.neighbors(tile_id));
-        self.surface_map.remove(&tile_id);
-        unlinked_neighbor_ids.into_iter().for_each(|neighbor_id| {
-            self.surface_map
-                .entry(neighbor_id)
-                .and_modify(|count| *count = count.checked_add(1).unwrap())
-                .or_insert(1);
-        });
+        self.cells.add_node(tile_id, grid.neighbors(tile_id));
         self.energy_yield(grid)
     }
 
     pub fn abandon(&mut self, tile_id: TileId, grid: &Grid) -> Vec<TileId> {
-        let neighboring_cells: Vec<_> = self.remove_cell(tile_id, grid).into_iter().collect();
+        let neighboring_cells: Vec<_> = self.remove_cell(tile_id).into_iter().collect();
         let mut visited = FixedBitSet::with_capacity(grid.size());
 
         // Make sure all neighboring cells are connected to each other
@@ -68,7 +60,7 @@ impl ActivePlant {
                     .collect()
             };
             dead_cells.iter().for_each(|&dead_tile_id| {
-                self.remove_cell(dead_tile_id, grid);
+                self.remove_cell(dead_tile_id);
             });
             return dead_cells;
         }
@@ -87,7 +79,7 @@ impl ActivePlant {
     }
 
     pub fn available_tiles(&self) -> IntSet<TileId> {
-        self.surface_map.keys().copied().collect()
+        self.cells.all_unoccupied_neighbors()
     }
 
     fn energy_usage(&self) -> usize {
@@ -95,35 +87,22 @@ impl ActivePlant {
     }
 
     fn energy_yield(&self, grid: &Grid) -> usize {
-        self.surface_map
-            .iter()
-            .filter(|(&surface_tile_id, _count)| grid.is_empty(surface_tile_id))
-            .map(|(_surface_tile_id, &count)| count)
+        self.cells
+            .unoccupied_neighbors_iter()
+            .flat_map(|(_node_id, neighbor_id_iter)| {
+                let yield_per_empty_tile = 1;
+                neighbor_id_iter.filter_map(move |neighbor_id| {
+                    if grid.is_empty(neighbor_id) {
+                        Some(yield_per_empty_tile)
+                    } else {
+                        None
+                    }
+                })
+            })
             .sum()
     }
 
-    fn remove_cell(&mut self, tile_id: TileId, grid: &Grid) -> IntSet<TileId> {
-        let neighboring_cells = self.cells.remove_node(tile_id);
-        if !neighboring_cells.is_empty() {
-            self.surface_map.insert(tile_id, neighboring_cells.len());
-        }
-
-        let original_neighbors = grid
-            .neighbors(tile_id)
-            .iter()
-            .copied()
-            .collect::<IntSet<_>>();
-        original_neighbors
-            .difference(&neighboring_cells)
-            .for_each(|&unowned_tile_id| {
-                if let Some(count) = self.surface_map.get_mut(&unowned_tile_id) {
-                    if *count == 1 {
-                        self.surface_map.remove(&unowned_tile_id);
-                    } else {
-                        *count = count.checked_sub(1).unwrap();
-                    }
-                }
-            });
-        neighboring_cells
+    fn remove_cell(&mut self, tile_id: TileId) -> IntSet<TileId> {
+        self.cells.remove_node(tile_id)
     }
 }

@@ -22,6 +22,4 @@ serde_json = { version = "1.0" }
 toml = "0.8"
 
 [profile.release]
-codegen-units = 1
-debug = 1
-lto = true
+debug = true

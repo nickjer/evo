@@ -1,13 +1,41 @@
 use crate::tiles::TileId;
-use derive_more::IntoIterator;
 use fixedbitset::FixedBitSet;
 use nohash::{IntMap, IntSet};
 use std::collections::VecDeque;
+use std::hash::BuildHasherDefault;
 
-#[derive(Debug, Clone, IntoIterator, Default)]
+#[derive(Debug, Clone)]
+struct Node {
+    occupied_neighbors: IntSet<TileId>,
+    unoccupied_neighbors: IntSet<TileId>,
+}
+
+impl Node {
+    pub fn new(neighbor_ids: &[TileId]) -> Self {
+        let capacity = neighbor_ids.len();
+        let occupied_neighbors =
+            IntSet::with_capacity_and_hasher(capacity, BuildHasherDefault::default());
+        let unoccupied_neighbors = IntSet::from_iter(neighbor_ids.iter().copied());
+        Self {
+            occupied_neighbors,
+            unoccupied_neighbors,
+        }
+    }
+
+    fn connect_to(&mut self, neighbor_id: TileId) {
+        self.occupied_neighbors.insert(neighbor_id);
+        self.unoccupied_neighbors.remove(&neighbor_id);
+    }
+
+    fn disconnect_from(&mut self, neighbor_id: TileId) {
+        self.occupied_neighbors.remove(&neighbor_id);
+        self.unoccupied_neighbors.insert(neighbor_id);
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct SimpleGraph {
-    #[into_iterator(owned, ref, ref_mut)]
-    node_map: IntMap<TileId, IntSet<TileId>>,
+    node_map: IntMap<TileId, Node>,
 }
 
 impl SimpleGraph {
@@ -19,40 +47,52 @@ impl SimpleGraph {
         self.node_map.keys().copied().collect()
     }
 
-    pub fn neighbors(&self, node_id: TileId) -> &IntSet<TileId> {
-        &self.node_map[&node_id]
+    fn neighbors(&self, node_id: TileId) -> &IntSet<TileId> {
+        &self.node_map[&node_id].occupied_neighbors
     }
 
-    pub fn add_node(&mut self, node_id: TileId, neighbor_ids: &[TileId]) -> Vec<TileId> {
-        let neighbor_size = neighbor_ids.len();
-        let mut links = IntSet::with_capacity_and_hasher(
-            neighbor_size,
-            std::hash::BuildHasherDefault::default(),
-        );
-        let mut unlinked_neighbors = Vec::with_capacity(neighbor_size);
-        neighbor_ids
-            .iter()
-            .for_each(|&neighbor_id| match self.node_map.get_mut(&neighbor_id) {
-                Some(reverse_links) => {
-                    links.insert(neighbor_id);
-                    reverse_links.insert(node_id);
-                }
-                None => {
-                    unlinked_neighbors.push(neighbor_id);
-                }
-            });
-        self.node_map.insert(node_id, links);
-        unlinked_neighbors
+    pub fn add_node(&mut self, node_id: TileId, neighbor_ids: &[TileId]) {
+        // Add the links and reverse links between the new node and its neighbors
+        let mut node = Node::new(neighbor_ids);
+        neighbor_ids.iter().for_each(|&neighbor_id| {
+            if let Some(occupied_neighbor_node) = self.node_map.get_mut(&neighbor_id) {
+                node.connect_to(neighbor_id);
+                occupied_neighbor_node.connect_to(node_id);
+            }
+        });
+        self.node_map.insert(node_id, node); // Add this node to the graph
     }
 
     pub fn remove_node(&mut self, node_id: TileId) -> IntSet<TileId> {
-        let neighbor_ids = self.node_map[&node_id].clone();
-        neighbor_ids.iter().for_each(|neighbor_id| {
-            let connections = self.node_map.get_mut(neighbor_id).unwrap();
-            connections.remove(&node_id);
-        });
-        self.node_map.remove(&node_id);
-        neighbor_ids
+        // Remove the reverse links pointing back to this node
+        let occupied_neighbor_ids = self.node_map[&node_id].occupied_neighbors.clone();
+        occupied_neighbor_ids
+            .iter()
+            .for_each(|occupied_neighbor_id| {
+                self.node_map
+                    .get_mut(occupied_neighbor_id)
+                    .unwrap()
+                    .disconnect_from(node_id);
+            });
+        self.node_map.remove(&node_id); // Remove this node from the graph
+
+        occupied_neighbor_ids
+    }
+
+    pub fn all_unoccupied_neighbors(&self) -> IntSet<TileId> {
+        self.node_map
+            .values()
+            .flat_map(|node| node.unoccupied_neighbors.iter())
+            .copied()
+            .collect()
+    }
+
+    pub fn unoccupied_neighbors_iter(
+        &self,
+    ) -> impl Iterator<Item = (TileId, impl Iterator<Item = TileId> + '_)> + '_ {
+        self.node_map
+            .iter()
+            .map(|(&node_id, node)| (node_id, node.unoccupied_neighbors.iter().copied()))
     }
 }
 

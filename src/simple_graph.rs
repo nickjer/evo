@@ -61,7 +61,7 @@ impl Surface {
         });
     }
 
-    fn unoccupied_neighbors(&self) -> IntSet<TileId> {
+    fn unoccupied_neighbors(&self) -> Vec<TileId> {
         self.unoccupied_map.keys().copied().collect()
     }
 
@@ -139,7 +139,7 @@ impl SimpleGraph {
         occupied_neighbor_ids
     }
 
-    pub fn all_unoccupied_neighbors(&self) -> IntSet<TileId> {
+    pub fn all_unoccupied_neighbors(&self) -> Vec<TileId> {
         self.surface.unoccupied_neighbors()
     }
 

@@ -6,7 +6,6 @@ use crate::rand::Rng;
 use crate::tiles::TileId;
 use ahash::AHashMap;
 use getset::{CopyGetters, Getters};
-use nohash::IntSet;
 use serde::Serialize;
 use std::cell::RefCell;
 
@@ -66,7 +65,7 @@ impl ActiveGenome {
     pub fn choose_tile(
         &self,
         grid: &Grid,
-        available_tiles: IntSet<TileId>,
+        available_tiles: &[TileId],
         plant_id: PlantId,
         points: usize,
         rng: &mut Rng,
@@ -76,8 +75,8 @@ impl ActiveGenome {
         }
 
         let scores = available_tiles
-            .into_iter()
-            .filter_map(|tile_id| Some(tile_id).zip(self.score(plant_id, grid, tile_id, points)))
+            .iter()
+            .filter_map(|&tile_id| Some(tile_id).zip(self.score(plant_id, grid, tile_id, points)))
             .collect::<Vec<_>>();
 
         let max_score = scores

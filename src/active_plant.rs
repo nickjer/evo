@@ -78,7 +78,7 @@ impl ActivePlant {
         energy_yield / energy_usage
     }
 
-    pub fn available_tiles(&self) -> IntSet<TileId> {
+    pub fn available_tiles(&self) -> Vec<TileId> {
         self.cells.all_unoccupied_neighbors()
     }
 

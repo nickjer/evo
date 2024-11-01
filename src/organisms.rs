@@ -103,7 +103,7 @@ impl Organisms {
         let available_tiles = active_plant.available_tiles();
         let genome_id = active_plant.genome_id();
         let active_genome = self.genome(genome_id);
-        active_genome.choose_tile(grid, available_tiles, plant_id, points, rng)
+        active_genome.choose_tile(grid, &available_tiles, plant_id, points, rng)
     }
 
     pub fn top_genomes(&mut self, n: usize) -> Vec<&Either<ActiveGenome, InactiveGenome>> {

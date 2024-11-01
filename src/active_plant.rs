@@ -89,15 +89,15 @@ impl ActivePlant {
     fn energy_yield(&self, grid: &Grid) -> usize {
         self.cells
             .unoccupied_neighbors_iter()
-            .flat_map(|(_node_id, neighbor_id_iter)| {
+            .map(|(unoccupied_node_id, occupied_id_iter)| {
+                if !grid.is_empty(unoccupied_node_id) {
+                    return 0;
+                }
+
                 let yield_per_empty_tile = 1;
-                neighbor_id_iter.filter_map(move |neighbor_id| {
-                    if grid.is_empty(neighbor_id) {
-                        Some(yield_per_empty_tile)
-                    } else {
-                        None
-                    }
-                })
+                occupied_id_iter
+                    .map(|_occupied_id| yield_per_empty_tile)
+                    .sum()
             })
             .sum()
     }

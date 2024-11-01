@@ -1,22 +1,25 @@
 use crate::tiles::TileId;
 use fixedbitset::FixedBitSet;
 use nohash::{IntMap, IntSet};
+use std::collections::hash_map::Entry;
 use std::collections::VecDeque;
 use std::hash::BuildHasherDefault;
 
 #[derive(Debug, Clone)]
 struct Node {
+    id: TileId,
     occupied_neighbors: IntSet<TileId>,
     unoccupied_neighbors: IntSet<TileId>,
 }
 
 impl Node {
-    pub fn new(neighbor_ids: &[TileId]) -> Self {
+    pub fn new(id: TileId, neighbor_ids: &[TileId]) -> Self {
         let capacity = neighbor_ids.len();
         let occupied_neighbors =
             IntSet::with_capacity_and_hasher(capacity, BuildHasherDefault::default());
         let unoccupied_neighbors = IntSet::from_iter(neighbor_ids.iter().copied());
         Self {
+            id,
             occupied_neighbors,
             unoccupied_neighbors,
         }
@@ -34,9 +37,61 @@ impl Node {
 }
 
 #[derive(Debug, Clone, Default)]
+struct Surface {
+    unoccupied_map: IntMap<TileId, IntSet<TileId>>,
+}
+
+impl Surface {
+    fn add_node(&mut self, node: &Node) {
+        let capacity = node.occupied_neighbors.capacity();
+        node.unoccupied_neighbors.iter().for_each(|&neighbor_id| {
+            self.insert_link(neighbor_id, node.id, capacity);
+        });
+        self.unoccupied_map.remove(&node.id);
+    }
+
+    fn remove_node(&mut self, node: &Node) {
+        let capacity = node.occupied_neighbors.capacity();
+        node.occupied_neighbors.iter().for_each(|&neighbor_id| {
+            self.insert_link(node.id, neighbor_id, capacity);
+        });
+
+        node.unoccupied_neighbors.iter().for_each(|&neighbor_id| {
+            self.remove_link(neighbor_id, node.id);
+        });
+    }
+
+    fn unoccupied_neighbors(&self) -> IntSet<TileId> {
+        self.unoccupied_map.keys().copied().collect()
+    }
+
+    fn insert_link(&mut self, unoccupied_id: TileId, occupied_id: TileId, capacity: usize) {
+        self.unoccupied_map
+            .entry(unoccupied_id)
+            .or_insert_with(|| {
+                IntSet::with_capacity_and_hasher(capacity, BuildHasherDefault::default())
+            })
+            .insert(occupied_id);
+    }
+
+    fn remove_link(&mut self, unoccupied_id: TileId, occupied_id: TileId) {
+        match self.unoccupied_map.entry(unoccupied_id) {
+            Entry::Occupied(mut entry) => {
+                let occupied_neighbors = entry.get_mut();
+                occupied_neighbors.remove(&occupied_id);
+                if occupied_neighbors.is_empty() {
+                    entry.remove();
+                }
+            }
+            Entry::Vacant(_) => {}
+        }
+    }
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct SimpleGraph {
     node_map: IntMap<TileId, Node>,
-    all_unoccupied_neighbors: IntSet<TileId>,
+    surface: Surface,
 }
 
 impl SimpleGraph {
@@ -53,33 +108,23 @@ impl SimpleGraph {
     }
 
     pub fn add_node(&mut self, node_id: TileId, neighbor_ids: &[TileId]) {
-        let mut node = Node::new(neighbor_ids);
+        let mut node = Node::new(node_id, neighbor_ids);
         neighbor_ids.iter().for_each(|&neighbor_id| {
-            match self.node_map.get_mut(&neighbor_id) {
-                Some(occupied_neighbor_node) => {
-                    // Add link to and reverse link from the neighbor
-                    node.connect_to(neighbor_id);
-                    occupied_neighbor_node.connect_to(node_id);
-                }
-                None => {
-                    self.all_unoccupied_neighbors.insert(neighbor_id);
-                }
+            if let Some(occupied_neighbor_node) = self.node_map.get_mut(&neighbor_id) {
+                // Add link to and reverse link from the neighbor
+                node.connect_to(neighbor_id);
+                occupied_neighbor_node.connect_to(node_id);
             }
         });
+        self.surface.add_node(&node);
         self.node_map.insert(node_id, node); // Add this node to the graph
-        self.all_unoccupied_neighbors.remove(&node_id);
     }
 
     pub fn remove_node(&mut self, node_id: TileId) -> IntSet<TileId> {
-        let mut old_unoccupied_neighbor_ids = self.node_map[&node_id].unoccupied_neighbors.clone();
-        let occupied_neighbor_ids = self.node_map[&node_id].occupied_neighbors.clone();
-
-        // This becomes global unoccupied neighbor if it has occupied neighbors
-        if !occupied_neighbor_ids.is_empty() {
-            self.all_unoccupied_neighbors.insert(node_id);
-        }
+        let node = self.node_map.remove(&node_id).unwrap();
 
         // Remove the reverse links pointing back to this node
+        let occupied_neighbor_ids = node.occupied_neighbors.clone();
         occupied_neighbor_ids
             .iter()
             .for_each(|occupied_neighbor_id| {
@@ -88,38 +133,23 @@ impl SimpleGraph {
                     .unwrap()
                     .disconnect_from(node_id);
             });
-        self.node_map.remove(&node_id); // Remove this node from the graph
 
-        // If not an unoccupied neighbor of any other node, remove from list of all unoccupied
-        // neighbors
-        for node in self.node_map.values() {
-            node.unoccupied_neighbors.iter().for_each(|&neighbor_id| {
-                old_unoccupied_neighbor_ids.remove(&neighbor_id);
-            });
-
-            if old_unoccupied_neighbor_ids.is_empty() {
-                break;
-            }
-        }
-        old_unoccupied_neighbor_ids
-            .into_iter()
-            .for_each(|neighbor_id| {
-                self.all_unoccupied_neighbors.remove(&neighbor_id);
-            });
+        self.surface.remove_node(&node);
 
         occupied_neighbor_ids
     }
 
     pub fn all_unoccupied_neighbors(&self) -> IntSet<TileId> {
-        self.all_unoccupied_neighbors.clone()
+        self.surface.unoccupied_neighbors()
     }
 
     pub fn unoccupied_neighbors_iter(
         &self,
     ) -> impl Iterator<Item = (TileId, impl Iterator<Item = TileId> + '_)> + '_ {
-        self.node_map
+        self.surface
+            .unoccupied_map
             .iter()
-            .map(|(&node_id, node)| (node_id, node.unoccupied_neighbors.iter().copied()))
+            .map(|(&node_id, occupied_neighbors)| (node_id, occupied_neighbors.iter().copied()))
     }
 }
 

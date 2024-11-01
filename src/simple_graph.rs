@@ -36,6 +36,7 @@ impl Node {
 #[derive(Debug, Clone, Default)]
 pub struct SimpleGraph {
     node_map: IntMap<TileId, Node>,
+    all_unoccupied_neighbors: IntSet<TileId>,
 }
 
 impl SimpleGraph {
@@ -52,20 +53,33 @@ impl SimpleGraph {
     }
 
     pub fn add_node(&mut self, node_id: TileId, neighbor_ids: &[TileId]) {
-        // Add the links and reverse links between the new node and its neighbors
         let mut node = Node::new(neighbor_ids);
         neighbor_ids.iter().for_each(|&neighbor_id| {
-            if let Some(occupied_neighbor_node) = self.node_map.get_mut(&neighbor_id) {
-                node.connect_to(neighbor_id);
-                occupied_neighbor_node.connect_to(node_id);
+            match self.node_map.get_mut(&neighbor_id) {
+                Some(occupied_neighbor_node) => {
+                    // Add link to and reverse link from the neighbor
+                    node.connect_to(neighbor_id);
+                    occupied_neighbor_node.connect_to(node_id);
+                }
+                None => {
+                    self.all_unoccupied_neighbors.insert(neighbor_id);
+                }
             }
         });
         self.node_map.insert(node_id, node); // Add this node to the graph
+        self.all_unoccupied_neighbors.remove(&node_id);
     }
 
     pub fn remove_node(&mut self, node_id: TileId) -> IntSet<TileId> {
-        // Remove the reverse links pointing back to this node
+        let mut old_unoccupied_neighbor_ids = self.node_map[&node_id].unoccupied_neighbors.clone();
         let occupied_neighbor_ids = self.node_map[&node_id].occupied_neighbors.clone();
+
+        // This becomes global unoccupied neighbor if it has occupied neighbors
+        if !occupied_neighbor_ids.is_empty() {
+            self.all_unoccupied_neighbors.insert(node_id);
+        }
+
+        // Remove the reverse links pointing back to this node
         occupied_neighbor_ids
             .iter()
             .for_each(|occupied_neighbor_id| {
@@ -76,15 +90,28 @@ impl SimpleGraph {
             });
         self.node_map.remove(&node_id); // Remove this node from the graph
 
+        // If not an unoccupied neighbor of any other node, remove from list of all unoccupied
+        // neighbors
+        for node in self.node_map.values() {
+            node.unoccupied_neighbors.iter().for_each(|&neighbor_id| {
+                old_unoccupied_neighbor_ids.remove(&neighbor_id);
+            });
+
+            if old_unoccupied_neighbor_ids.is_empty() {
+                break;
+            }
+        }
+        old_unoccupied_neighbor_ids
+            .into_iter()
+            .for_each(|neighbor_id| {
+                self.all_unoccupied_neighbors.remove(&neighbor_id);
+            });
+
         occupied_neighbor_ids
     }
 
     pub fn all_unoccupied_neighbors(&self) -> IntSet<TileId> {
-        self.node_map
-            .values()
-            .flat_map(|node| node.unoccupied_neighbors.iter())
-            .copied()
-            .collect()
+        self.all_unoccupied_neighbors.clone()
     }
 
     pub fn unoccupied_neighbors_iter(

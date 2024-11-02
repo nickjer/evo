@@ -1,8 +1,8 @@
 use crate::cell_kind::CellKind;
 use crate::plants::PlantId;
-use derive_more::IsVariant;
+use derive_more::{IsVariant, Unwrap};
 
-#[derive(Debug, Copy, Clone, PartialEq, IsVariant)]
+#[derive(Debug, Copy, Clone, PartialEq, IsVariant, Unwrap)]
 pub enum Entity {
     Empty,
     Cell(PlantId, CellKind),

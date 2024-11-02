@@ -94,9 +94,11 @@ impl ActivePlant {
                     return 0;
                 }
 
-                let yield_per_empty_tile = 1;
                 occupied_id_iter
-                    .map(|_occupied_id| yield_per_empty_tile)
+                    .map(|occupied_id| {
+                        let (_plant_id, cell_kind) = grid.entity(occupied_id).unwrap_cell();
+                        cell_kind.yield_per_empty_tile()
+                    })
                     .sum()
             })
             .sum()

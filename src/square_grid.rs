@@ -1,31 +1,52 @@
 use crate::position::Position;
 use crate::step::Step;
 use crate::tiles::{TileId, Tiles};
-use derive_more::derive::{AsRef, IntoIterator};
+use derive_more::derive::IntoIterator;
 use getset::CopyGetters;
 
-#[derive(Debug, Copy, Clone, AsRef, IntoIterator)]
-struct Neighbors([TileId; 4]);
+#[derive(Debug, Copy, Clone, IntoIterator)]
+#[into_iterator(owned, ref, ref_mut)]
+pub struct Neighbors<T>([T; 4]);
 
-impl Neighbors {
-    fn new(up: TileId, right: TileId, down: TileId, left: TileId) -> Self {
+impl<T> Neighbors<T> {
+    fn new(up: T, right: T, down: T, left: T) -> Self {
         Self([up, right, down, left])
     }
 
-    fn up(&self) -> TileId {
+    fn up(&self) -> T
+    where
+        T: Copy,
+    {
         self.0[0]
     }
 
-    fn right(&self) -> TileId {
+    fn right(&self) -> T
+    where
+        T: Copy,
+    {
         self.0[1]
     }
 
-    fn down(&self) -> TileId {
+    fn down(&self) -> T
+    where
+        T: Copy,
+    {
         self.0[2]
     }
 
-    fn left(&self) -> TileId {
+    fn left(&self) -> T
+    where
+        T: Copy,
+    {
         self.0[3]
+    }
+
+    pub fn map<F, U>(self, f: F) -> Neighbors<U>
+    where
+        F: FnMut(T) -> U,
+        T: Copy,
+    {
+        Neighbors(self.0.map(f))
     }
 }
 
@@ -35,7 +56,7 @@ pub struct SquareGrid {
     x_size: usize,
     #[get_copy = "pub"]
     y_size: usize,
-    neighbors: Tiles<Neighbors>,
+    neighbors: Tiles<Neighbors<TileId>>,
 }
 
 impl SquareGrid {
@@ -66,8 +87,8 @@ impl SquareGrid {
         (0..self.size()).map(TileId::from)
     }
 
-    pub fn neighbors(&self, tile_id: TileId) -> &[TileId] {
-        self.neighbors[tile_id].as_ref()
+    pub fn neighbors(&self, tile_id: TileId) -> &Neighbors<TileId> {
+        &self.neighbors[tile_id]
     }
 
     pub fn id_at(&self, position: Position) -> TileId {

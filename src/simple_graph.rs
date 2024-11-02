@@ -1,38 +1,54 @@
+use crate::square_grid::Neighbors;
 use crate::tiles::TileId;
+use derive_more::derive::{IsVariant, Unwrap};
 use fixedbitset::FixedBitSet;
 use nohash::{IntMap, IntSet};
 use std::collections::hash_map::Entry;
 use std::collections::VecDeque;
 use std::hash::BuildHasherDefault;
 
+#[derive(Debug, Copy, Clone, IsVariant, Unwrap)]
+enum Occupancy {
+    Occupied(TileId),
+    Unoccupied(TileId),
+}
+
 #[derive(Debug, Clone)]
 struct Node {
     id: TileId,
-    occupied_neighbors: IntSet<TileId>,
-    unoccupied_neighbors: IntSet<TileId>,
+    neighbors: Neighbors<Occupancy>,
 }
 
 impl Node {
-    pub fn new(id: TileId, neighbor_ids: &[TileId]) -> Self {
-        let capacity = neighbor_ids.len();
-        let occupied_neighbors =
-            IntSet::with_capacity_and_hasher(capacity, BuildHasherDefault::default());
-        let unoccupied_neighbors = IntSet::from_iter(neighbor_ids.iter().copied());
-        Self {
-            id,
-            occupied_neighbors,
-            unoccupied_neighbors,
-        }
+    pub fn new(id: TileId, neighbor_ids: &Neighbors<TileId>) -> Self {
+        let neighbors = neighbor_ids.map(Occupancy::Unoccupied);
+        Self { id, neighbors }
     }
 
     fn connect_to(&mut self, neighbor_id: TileId) {
-        self.occupied_neighbors.insert(neighbor_id);
-        self.unoccupied_neighbors.remove(&neighbor_id);
+        (&mut self.neighbors)
+            .into_iter()
+            .for_each(|neighbor| match *neighbor {
+                Occupancy::Unoccupied(unoccupied_neighbor_id)
+                    if unoccupied_neighbor_id == neighbor_id =>
+                {
+                    *neighbor = Occupancy::Occupied(neighbor_id);
+                }
+                _ => {}
+            });
     }
 
     fn disconnect_from(&mut self, neighbor_id: TileId) {
-        self.occupied_neighbors.remove(&neighbor_id);
-        self.unoccupied_neighbors.insert(neighbor_id);
+        (&mut self.neighbors)
+            .into_iter()
+            .for_each(|neighbor| match *neighbor {
+                Occupancy::Occupied(occupied_neighbor_id)
+                    if occupied_neighbor_id == neighbor_id =>
+                {
+                    *neighbor = Occupancy::Unoccupied(neighbor_id);
+                }
+                _ => {}
+            });
     }
 }
 
@@ -43,22 +59,27 @@ struct Surface {
 
 impl Surface {
     fn add_node(&mut self, node: &Node) {
-        let capacity = node.occupied_neighbors.capacity();
-        node.unoccupied_neighbors.iter().for_each(|&neighbor_id| {
-            self.insert_link(neighbor_id, node.id, capacity);
+        let capacity = 4;
+        (&node.neighbors).into_iter().for_each(|&neighbor| {
+            if let Occupancy::Unoccupied(neighbor_id) = neighbor {
+                self.insert_link(neighbor_id, node.id, capacity);
+            }
         });
         self.unoccupied_map.remove(&node.id);
     }
 
     fn remove_node(&mut self, node: &Node) {
-        let capacity = node.occupied_neighbors.capacity();
-        node.occupied_neighbors.iter().for_each(|&neighbor_id| {
-            self.insert_link(node.id, neighbor_id, capacity);
-        });
-
-        node.unoccupied_neighbors.iter().for_each(|&neighbor_id| {
-            self.remove_link(neighbor_id, node.id);
-        });
+        let capacity = 4;
+        (&node.neighbors)
+            .into_iter()
+            .for_each(|&neighbor| match neighbor {
+                Occupancy::Occupied(neighbor_id) => {
+                    self.insert_link(node.id, neighbor_id, capacity);
+                }
+                Occupancy::Unoccupied(neighbor_id) => {
+                    self.remove_link(neighbor_id, node.id);
+                }
+            });
     }
 
     fn unoccupied_neighbors(&self) -> Vec<TileId> {
@@ -83,7 +104,7 @@ impl Surface {
                     entry.remove();
                 }
             }
-            Entry::Vacant(_) => {}
+            Entry::Vacant(_) => unreachable!(),
         }
     }
 }
@@ -103,13 +124,18 @@ impl SimpleGraph {
         self.node_map.keys().copied().collect()
     }
 
-    fn neighbors(&self, node_id: TileId) -> &IntSet<TileId> {
-        &self.node_map[&node_id].occupied_neighbors
+    fn neighbor_iter(&self, node_id: TileId) -> impl Iterator<Item = TileId> + '_ {
+        (&self.node_map[&node_id].neighbors)
+            .into_iter()
+            .filter_map(|&neighbor| match neighbor {
+                Occupancy::Occupied(neighbor_id) => Some(neighbor_id),
+                _ => None,
+            })
     }
 
-    pub fn add_node(&mut self, node_id: TileId, neighbor_ids: &[TileId]) {
+    pub fn add_node(&mut self, node_id: TileId, neighbor_ids: &Neighbors<TileId>) {
         let mut node = Node::new(node_id, neighbor_ids);
-        neighbor_ids.iter().for_each(|&neighbor_id| {
+        neighbor_ids.into_iter().for_each(|&neighbor_id| {
             if let Some(occupied_neighbor_node) = self.node_map.get_mut(&neighbor_id) {
                 // Add link to and reverse link from the neighbor
                 node.connect_to(neighbor_id);
@@ -120,11 +146,17 @@ impl SimpleGraph {
         self.node_map.insert(node_id, node); // Add this node to the graph
     }
 
-    pub fn remove_node(&mut self, node_id: TileId) -> IntSet<TileId> {
+    pub fn remove_node(&mut self, node_id: TileId) -> Vec<TileId> {
         let node = self.node_map.remove(&node_id).unwrap();
 
         // Remove the reverse links pointing back to this node
-        let occupied_neighbor_ids = node.occupied_neighbors.clone();
+        let occupied_neighbor_ids = (&node.neighbors)
+            .into_iter()
+            .filter_map(|&neighbor| match neighbor {
+                Occupancy::Occupied(neighbor_id) => Some(neighbor_id),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
         occupied_neighbor_ids
             .iter()
             .for_each(|occupied_neighbor_id| {
@@ -171,7 +203,7 @@ pub fn components(graph: &SimpleGraph, visited: &mut FixedBitSet) -> Vec<Vec<Til
             visited.insert(node_id.into());
             while let Some(node_id) = stack.pop() {
                 component.push(node_id);
-                for &neighbor_id in graph.neighbors(node_id) {
+                for neighbor_id in graph.neighbor_iter(node_id) {
                     if !visited.put(neighbor_id.into()) {
                         stack.push(neighbor_id);
                     }
@@ -195,7 +227,7 @@ pub fn all_connected(graph: &SimpleGraph, node_ids: &[TileId], visited: &mut Fix
     stack.push_front(first);
     visited.insert(first.into());
     while let Some(node_id) = stack.pop_front() {
-        for &neighbor_id in graph.neighbors(node_id) {
+        for neighbor_id in graph.neighbor_iter(node_id) {
             if !visited.put(neighbor_id.into()) {
                 if search.remove(&neighbor_id) && search.is_empty() {
                     return true;

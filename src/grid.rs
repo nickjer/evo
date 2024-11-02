@@ -2,7 +2,7 @@ use crate::blob::Blob;
 use crate::doublet::Doublet;
 use crate::entity::Entity;
 use crate::position::Position;
-use crate::square_grid::SquareGrid;
+use crate::square_grid::{Neighbors, SquareGrid};
 use crate::tiles::TileId;
 use crate::tiles::Tiles;
 use crate::triplet_i::TripletI;
@@ -60,7 +60,7 @@ impl Grid {
         self.grid.size()
     }
 
-    pub fn neighbors(&self, tile_id: TileId) -> &[TileId] {
+    pub fn neighbors(&self, tile_id: TileId) -> &Neighbors<TileId> {
         self.grid.neighbors(tile_id)
     }
 

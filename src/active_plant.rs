@@ -5,7 +5,6 @@ use crate::simple_graph::{all_connected, components, SimpleGraph};
 use crate::tiles::TileId;
 use fixedbitset::FixedBitSet;
 use getset::CopyGetters;
-use nohash::IntSet;
 
 #[derive(Debug, Clone, CopyGetters, Default)]
 pub struct ActivePlant {
@@ -34,7 +33,7 @@ impl ActivePlant {
     }
 
     pub fn abandon(&mut self, tile_id: TileId, grid: &Grid) -> Vec<TileId> {
-        let neighboring_cells: Vec<_> = self.remove_cell(tile_id).into_iter().collect();
+        let neighboring_cells = self.remove_cell(tile_id);
         let mut visited = FixedBitSet::with_capacity(grid.size());
 
         // Make sure all neighboring cells are connected to each other
@@ -104,7 +103,7 @@ impl ActivePlant {
             .sum()
     }
 
-    fn remove_cell(&mut self, tile_id: TileId) -> IntSet<TileId> {
+    fn remove_cell(&mut self, tile_id: TileId) -> Vec<TileId> {
         self.cells.remove_node(tile_id)
     }
 }

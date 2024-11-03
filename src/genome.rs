@@ -18,7 +18,7 @@ pub enum GenomeKind {
 pub trait Genome {
     fn mutate(&self, rng: &mut Rng) -> GenomeKind;
 
-    fn score(&self, plant_id: PlantId, grid: &Grid, tile_id: TileId, points: usize) -> Option<f32>;
+    fn score(&self, plant_id: PlantId, tile_id: TileId, points: usize, grid: &Grid) -> Option<f32>;
 
     fn score_weight(&self) -> f32;
 }

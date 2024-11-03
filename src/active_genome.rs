@@ -116,7 +116,7 @@ impl ActiveGenome {
             }
         }
 
-        let score = self.genome.score(plant_id, grid, tile_id, points);
+        let score = self.genome.score(plant_id, tile_id, points, grid);
         score_map.insert((plant_id, tile_id, points), (nonce, score));
         score
     }

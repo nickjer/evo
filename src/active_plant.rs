@@ -28,7 +28,7 @@ impl ActivePlant {
     }
 
     pub fn occupy(&mut self, tile_id: TileId, grid: &Grid) -> usize {
-        self.cells.add_node(tile_id, grid.neighbors(tile_id));
+        self.cells.add_node(tile_id, grid);
         self.energy_yield(grid)
     }
 

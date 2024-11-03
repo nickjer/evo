@@ -1,30 +1,42 @@
+use crate::grid::Grid;
 use crate::square_grid::Neighbors;
 use crate::tiles::TileId;
-use derive_more::derive::{IsVariant, Unwrap};
+use derive_more::derive::{Constructor, IsVariant};
 use fixedbitset::FixedBitSet;
 use nohash::{IntMap, IntSet};
 use std::collections::hash_map::Entry;
 use std::collections::VecDeque;
 use std::hash::BuildHasherDefault;
 
-#[derive(Debug, Copy, Clone, IsVariant, Unwrap)]
+#[derive(Debug, Copy, Clone, IsVariant)]
 enum Occupancy {
     Occupied(TileId),
     Unoccupied(TileId),
 }
 
-#[derive(Debug, Clone)]
+impl Occupancy {
+    fn occupied(&self) -> Option<TileId> {
+        match self {
+            Occupancy::Occupied(occupied_id) => Some(*occupied_id),
+            _ => None,
+        }
+    }
+
+    fn unoccupied(&self) -> Option<TileId> {
+        match self {
+            Occupancy::Unoccupied(unoccupied_id) => Some(*unoccupied_id),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Constructor)]
 struct Node {
     id: TileId,
     neighbors: Neighbors<Occupancy>,
 }
 
 impl Node {
-    pub fn new(id: TileId, neighbor_ids: &Neighbors<TileId>) -> Self {
-        let neighbors = neighbor_ids.map(Occupancy::Unoccupied);
-        Self { id, neighbors }
-    }
-
     fn connect_to(&mut self, neighbor_id: TileId) {
         (&mut self.neighbors)
             .into_iter()
@@ -60,11 +72,12 @@ struct Surface {
 impl Surface {
     fn add_node(&mut self, node: &Node) {
         let capacity = 4;
-        (&node.neighbors).into_iter().for_each(|&neighbor| {
-            if let Occupancy::Unoccupied(neighbor_id) = neighbor {
+        (&node.neighbors)
+            .into_iter()
+            .filter_map(Occupancy::unoccupied)
+            .for_each(|neighbor_id| {
                 self.insert_link(neighbor_id, node.id, capacity);
-            }
-        });
+            });
         self.unoccupied_map.remove(&node.id);
     }
 
@@ -127,21 +140,20 @@ impl SimpleGraph {
     fn neighbor_iter(&self, node_id: TileId) -> impl Iterator<Item = TileId> + '_ {
         (&self.node_map[&node_id].neighbors)
             .into_iter()
-            .filter_map(|&neighbor| match neighbor {
-                Occupancy::Occupied(neighbor_id) => Some(neighbor_id),
-                _ => None,
-            })
+            .filter_map(Occupancy::occupied)
     }
 
-    pub fn add_node(&mut self, node_id: TileId, neighbor_ids: &Neighbors<TileId>) {
-        let mut node = Node::new(node_id, neighbor_ids);
-        neighbor_ids.into_iter().for_each(|&neighbor_id| {
-            if let Some(occupied_neighbor_node) = self.node_map.get_mut(&neighbor_id) {
-                // Add link to and reverse link from the neighbor
-                node.connect_to(neighbor_id);
-                occupied_neighbor_node.connect_to(node_id);
-            }
-        });
+    pub fn add_node(&mut self, node_id: TileId, grid: &Grid) {
+        let neighbors =
+            grid.neighbors(node_id)
+                .map(|neighbor_id| match self.node_map.entry(neighbor_id) {
+                    Entry::Occupied(mut occupied_neighbor_node) => {
+                        occupied_neighbor_node.get_mut().connect_to(node_id);
+                        Occupancy::Occupied(neighbor_id)
+                    }
+                    Entry::Vacant(_) => Occupancy::Unoccupied(neighbor_id),
+                });
+        let node = Node::new(node_id, neighbors);
         self.surface.add_node(&node);
         self.node_map.insert(node_id, node); // Add this node to the graph
     }
@@ -152,10 +164,7 @@ impl SimpleGraph {
         // Remove the reverse links pointing back to this node
         let occupied_neighbor_ids = (&node.neighbors)
             .into_iter()
-            .filter_map(|&neighbor| match neighbor {
-                Occupancy::Occupied(neighbor_id) => Some(neighbor_id),
-                _ => None,
-            })
+            .filter_map(Occupancy::occupied)
             .collect::<Vec<_>>();
         occupied_neighbor_ids
             .iter()

@@ -89,7 +89,7 @@ impl Genome for DoubletGenome {
         .into()
     }
 
-    fn score(&self, plant_id: PlantId, grid: &Grid, tile_id: TileId, points: usize) -> Option<f32> {
+    fn score(&self, plant_id: PlantId, tile_id: TileId, points: usize, grid: &Grid) -> Option<f32> {
         let entity_1 = grid.entity(tile_id).into_greedy(plant_id);
         match entity_1 {
             GreedyEntity::Empty => {}

@@ -6,7 +6,6 @@ use fixedbitset::FixedBitSet;
 use nohash::{IntMap, IntSet};
 use std::collections::hash_map::Entry;
 use std::collections::VecDeque;
-use std::hash::BuildHasherDefault;
 
 #[derive(Debug, Copy, Clone, IsVariant)]
 enum Occupancy {
@@ -66,7 +65,7 @@ impl Node {
 
 #[derive(Debug, Clone, Default)]
 struct Surface {
-    unoccupied_map: IntMap<TileId, IntSet<TileId>>,
+    unoccupied_map: IntMap<TileId, Vec<TileId>>,
 }
 
 impl Surface {
@@ -100,19 +99,21 @@ impl Surface {
     }
 
     fn insert_link(&mut self, unoccupied_id: TileId, occupied_id: TileId, capacity: usize) {
-        self.unoccupied_map
+        let occupied_neighbors = self
+            .unoccupied_map
             .entry(unoccupied_id)
-            .or_insert_with(|| {
-                IntSet::with_capacity_and_hasher(capacity, BuildHasherDefault::default())
-            })
-            .insert(occupied_id);
+            .or_insert_with(|| Vec::with_capacity(capacity));
+
+        if !occupied_neighbors.contains(&occupied_id) {
+            occupied_neighbors.push(occupied_id);
+        }
     }
 
     fn remove_link(&mut self, unoccupied_id: TileId, occupied_id: TileId) {
         match self.unoccupied_map.entry(unoccupied_id) {
             Entry::Occupied(mut entry) => {
                 let occupied_neighbors = entry.get_mut();
-                occupied_neighbors.remove(&occupied_id);
+                occupied_neighbors.retain(|&neighbor_id| neighbor_id != occupied_id);
                 if occupied_neighbors.is_empty() {
                     entry.remove();
                 }

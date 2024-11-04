@@ -43,7 +43,6 @@ impl ActivePlant {
             let dead_cells: Vec<TileId> = if visited.count_ones(..) > majority {
                 self.cells
                     .nodes()
-                    .into_iter()
                     .filter(|&tile_id| !visited.contains(tile_id.into()))
                     .collect()
             } else {

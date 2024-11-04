@@ -184,46 +184,56 @@ impl TripletFn {
     ) -> f32 {
         match (entity_i, entity_j, entity_k) {
             (GreedyEntity::Empty, GreedyEntity::Empty, GreedyEntity::Empty) => self.triplet_eee,
-            (GreedyEntity::Empty, GreedyEntity::Empty, GreedyEntity::MyCell) => self.triplet_ees,
-            (GreedyEntity::Empty, GreedyEntity::Empty, GreedyEntity::OtherCell) => self.triplet_eeo,
-            (GreedyEntity::Empty, GreedyEntity::MyCell, GreedyEntity::Empty) => self.triplet_ese,
-            (GreedyEntity::Empty, GreedyEntity::MyCell, GreedyEntity::MyCell) => self.triplet_ess,
-            (GreedyEntity::Empty, GreedyEntity::MyCell, GreedyEntity::OtherCell) => {
+            (GreedyEntity::Empty, GreedyEntity::Empty, GreedyEntity::MyCell(_)) => self.triplet_ees,
+            (GreedyEntity::Empty, GreedyEntity::Empty, GreedyEntity::OtherCell(_)) => {
+                self.triplet_eeo
+            }
+            (GreedyEntity::Empty, GreedyEntity::MyCell(_), GreedyEntity::Empty) => self.triplet_ese,
+            (GreedyEntity::Empty, GreedyEntity::MyCell(_), GreedyEntity::MyCell(_)) => {
+                self.triplet_ess
+            }
+            (GreedyEntity::Empty, GreedyEntity::MyCell(_), GreedyEntity::OtherCell(_)) => {
                 self.triplet_eso
             }
-            (GreedyEntity::Empty, GreedyEntity::OtherCell, GreedyEntity::Empty) => self.triplet_eoe,
-            (GreedyEntity::Empty, GreedyEntity::OtherCell, GreedyEntity::MyCell) => {
+            (GreedyEntity::Empty, GreedyEntity::OtherCell(_), GreedyEntity::Empty) => {
+                self.triplet_eoe
+            }
+            (GreedyEntity::Empty, GreedyEntity::OtherCell(_), GreedyEntity::MyCell(_)) => {
                 self.triplet_eos
             }
-            (GreedyEntity::Empty, GreedyEntity::OtherCell, GreedyEntity::OtherCell) => {
+            (GreedyEntity::Empty, GreedyEntity::OtherCell(_), GreedyEntity::OtherCell(_)) => {
                 self.triplet_eoo
             }
-            (GreedyEntity::OtherCell, GreedyEntity::Empty, GreedyEntity::Empty) => self.triplet_oee,
-            (GreedyEntity::OtherCell, GreedyEntity::Empty, GreedyEntity::MyCell) => {
+            (GreedyEntity::OtherCell(_), GreedyEntity::Empty, GreedyEntity::Empty) => {
+                self.triplet_oee
+            }
+            (GreedyEntity::OtherCell(_), GreedyEntity::Empty, GreedyEntity::MyCell(_)) => {
                 self.triplet_oes
             }
-            (GreedyEntity::OtherCell, GreedyEntity::Empty, GreedyEntity::OtherCell) => {
+            (GreedyEntity::OtherCell(_), GreedyEntity::Empty, GreedyEntity::OtherCell(_)) => {
                 self.triplet_oeo
             }
-            (GreedyEntity::OtherCell, GreedyEntity::MyCell, GreedyEntity::Empty) => {
+            (GreedyEntity::OtherCell(_), GreedyEntity::MyCell(_), GreedyEntity::Empty) => {
                 self.triplet_ose
             }
-            (GreedyEntity::OtherCell, GreedyEntity::MyCell, GreedyEntity::MyCell) => {
+            (GreedyEntity::OtherCell(_), GreedyEntity::MyCell(_), GreedyEntity::MyCell(_)) => {
                 self.triplet_oss
             }
-            (GreedyEntity::OtherCell, GreedyEntity::MyCell, GreedyEntity::OtherCell) => {
+            (GreedyEntity::OtherCell(_), GreedyEntity::MyCell(_), GreedyEntity::OtherCell(_)) => {
                 self.triplet_oso
             }
-            (GreedyEntity::OtherCell, GreedyEntity::OtherCell, GreedyEntity::Empty) => {
+            (GreedyEntity::OtherCell(_), GreedyEntity::OtherCell(_), GreedyEntity::Empty) => {
                 self.triplet_ooe
             }
-            (GreedyEntity::OtherCell, GreedyEntity::OtherCell, GreedyEntity::MyCell) => {
+            (GreedyEntity::OtherCell(_), GreedyEntity::OtherCell(_), GreedyEntity::MyCell(_)) => {
                 self.triplet_oos
             }
-            (GreedyEntity::OtherCell, GreedyEntity::OtherCell, GreedyEntity::OtherCell) => {
-                self.triplet_ooo
-            }
-            (GreedyEntity::MyCell, _, _) => panic!("Invalid entity triplet"),
+            (
+                GreedyEntity::OtherCell(_),
+                GreedyEntity::OtherCell(_),
+                GreedyEntity::OtherCell(_),
+            ) => self.triplet_ooo,
+            (GreedyEntity::MyCell(_), _, _) => panic!("Invalid entity triplet"),
         }
     }
 }

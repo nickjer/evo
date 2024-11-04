@@ -93,8 +93,8 @@ impl Genome for DoubletGenome {
         let entity_1 = grid.entity(tile_id).into_greedy(plant_id);
         match entity_1 {
             GreedyEntity::Empty => {}
-            GreedyEntity::MyCell => return None,
-            GreedyEntity::OtherCell => {
+            GreedyEntity::MyCell(_) => return None,
+            GreedyEntity::OtherCell(_) => {
                 if points <= 1 {
                     return None;
                 }

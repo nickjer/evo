@@ -11,16 +11,18 @@ pub enum Entity {
 #[derive(Debug, Copy, Clone)]
 pub enum GreedyEntity {
     Empty,
-    MyCell,
-    OtherCell,
+    MyCell(CellKind),
+    OtherCell(CellKind),
 }
 
 impl Entity {
     pub fn into_greedy(self, plant_id: PlantId) -> GreedyEntity {
         match self {
             Entity::Empty => GreedyEntity::Empty,
-            Entity::Cell(cell_id, _) if cell_id == plant_id => GreedyEntity::MyCell,
-            Entity::Cell(..) => GreedyEntity::OtherCell,
+            Entity::Cell(cell_id, cell_kind) if cell_id == plant_id => {
+                GreedyEntity::MyCell(cell_kind)
+            }
+            Entity::Cell(_, cell_kind) => GreedyEntity::OtherCell(cell_kind),
         }
     }
 }

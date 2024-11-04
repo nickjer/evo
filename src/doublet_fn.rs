@@ -83,12 +83,12 @@ impl DoubletFn {
     pub fn score(&self, entity_i: GreedyEntity, entity_j: GreedyEntity) -> f32 {
         match (entity_i, entity_j) {
             (GreedyEntity::Empty, GreedyEntity::Empty) => self.doublet_ee,
-            (GreedyEntity::Empty, GreedyEntity::MyCell) => self.doublet_es,
-            (GreedyEntity::Empty, GreedyEntity::OtherCell) => self.doublet_eo,
-            (GreedyEntity::OtherCell, GreedyEntity::Empty) => self.doublet_oe,
-            (GreedyEntity::OtherCell, GreedyEntity::MyCell) => self.doublet_os,
-            (GreedyEntity::OtherCell, GreedyEntity::OtherCell) => self.doublet_oo,
-            (GreedyEntity::MyCell, _) => panic!("Invalid entity pair"),
+            (GreedyEntity::Empty, GreedyEntity::MyCell(_)) => self.doublet_es,
+            (GreedyEntity::Empty, GreedyEntity::OtherCell(_)) => self.doublet_eo,
+            (GreedyEntity::OtherCell(_), GreedyEntity::Empty) => self.doublet_oe,
+            (GreedyEntity::OtherCell(_), GreedyEntity::MyCell(_)) => self.doublet_os,
+            (GreedyEntity::OtherCell(_), GreedyEntity::OtherCell(_)) => self.doublet_oo,
+            (GreedyEntity::MyCell(_), _) => panic!("Invalid entity pair"),
         }
     }
 }

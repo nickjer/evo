@@ -49,7 +49,7 @@ impl SingletFn {
     pub fn score(&self, entity_i: GreedyEntity) -> f32 {
         match entity_i {
             GreedyEntity::Empty => self.singlet_e,
-            GreedyEntity::OtherCell => self.singlet_o,
+            GreedyEntity::OtherCell(_) => self.singlet_o,
             _ => panic!("Invalid entity"),
         }
     }

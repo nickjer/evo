@@ -134,8 +134,8 @@ impl SimpleGraph {
         self.node_map.len()
     }
 
-    pub fn nodes(&self) -> Vec<TileId> {
-        self.node_map.keys().copied().collect()
+    pub fn nodes(&self) -> impl Iterator<Item = TileId> + '_ {
+        self.node_map.keys().copied()
     }
 
     fn neighbor_iter(&self, node_id: TileId) -> impl Iterator<Item = TileId> + '_ {

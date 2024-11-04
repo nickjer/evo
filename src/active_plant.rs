@@ -24,7 +24,7 @@ impl ActivePlant {
     }
 
     pub fn cell_tiles(&self) -> Vec<TileId> {
-        self.cells.nodes()
+        self.cells.nodes().collect()
     }
 
     pub fn occupy(&mut self, tile_id: TileId, grid: &Grid) -> usize {
@@ -68,7 +68,7 @@ impl ActivePlant {
     }
 
     pub fn energy_points(&self, grid: &Grid) -> usize {
-        let energy_usage = self.energy_usage();
+        let energy_usage = self.energy_usage(grid);
         if energy_usage == 0 {
             return 0;
         }
@@ -81,24 +81,25 @@ impl ActivePlant {
         self.cells.all_unoccupied_neighbors()
     }
 
-    fn energy_usage(&self) -> usize {
-        self.cells.node_count()
+    fn energy_usage(&self, grid: &Grid) -> usize {
+        self.cells
+            .nodes()
+            .map(|tile_id| {
+                let (_plant_id, cell_kind) = grid.entity(tile_id).unwrap_cell();
+                cell_kind.cost_per_turn()
+            })
+            .sum()
     }
 
     fn energy_yield(&self, grid: &Grid) -> usize {
         self.cells
             .unoccupied_neighbors_iter()
-            .map(|(unoccupied_node_id, occupied_id_iter)| {
-                if !grid.is_empty(unoccupied_node_id) {
-                    return 0;
-                }
-
-                occupied_id_iter
-                    .map(|occupied_id| {
-                        let (_plant_id, cell_kind) = grid.entity(occupied_id).unwrap_cell();
-                        cell_kind.yield_per_empty_tile()
-                    })
-                    .sum()
+            .filter(|(unoccupied_node_id, _)| grid.is_empty(*unoccupied_node_id))
+            .flat_map(|(_, occupied_id_iter)| {
+                occupied_id_iter.map(|occupied_id| {
+                    let (_plant_id, cell_kind) = grid.entity(occupied_id).unwrap_cell();
+                    cell_kind.yield_per_empty_tile()
+                })
             })
             .sum()
     }

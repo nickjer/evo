@@ -16,6 +16,12 @@ impl CellKind {
         }
     }
 
+    pub fn cost_per_turn(&self) -> usize {
+        match self {
+            CellKind::Branch => 1,
+        }
+    }
+
     pub fn yield_per_empty_tile(&self) -> usize {
         match self {
             CellKind::Branch => 1,
